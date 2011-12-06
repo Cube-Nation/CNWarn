@@ -1,0 +1,15 @@
+author: DerFlash
+database: true
+description: Based on Butzenbaer's CubeWarn
+generator: http://dinnerbone.com/minecraft/tools/pluginator/
+main: me.derflash.plugins.cnwarn.CNWarn
+name: CNWarn
+startup: postworld
+url: http://www.cube-nation.de/
+version: '1.0'
+depend:
+  - PermissionsEx
+commands:
+    warn:
+        description: warn a player
+        usage: /warn help for more information
