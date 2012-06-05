@@ -1,6 +1,6 @@
 author: DerFlash
 database: true
-description: Based on Butzenbaer's CubeWarn
+description: Cube-Nation Warn Plugin - Based on Butzenbaer's CubeWarn
 generator: http://dinnerbone.com/minecraft/tools/pluginator/
 main: me.derflash.plugins.cnwarn.CNWarn
 name: CNWarn
@@ -13,3 +13,6 @@ commands:
     warn:
         description: warn a player
         usage: /warn help for more information
+    watch:
+        description: watch a player
+        usage: /watch help for more information

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -16,9 +17,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.Event.Priority;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.avaje.ebean.SqlRow;
@@ -34,9 +32,6 @@ public class CNWarn extends JavaPlugin {
     PermissionManager perm = null;
 	public HashMap<Player, ConfirmOfflineWarnTable> offlineWarnings = new HashMap<Player, ConfirmOfflineWarnTable>(); //Hashmap warned offline players until confirm
 	
-	/**** Listener ****/
-	private final CubeWarnPlayerListener playerListener = new CubeWarnPlayerListener(this);
-	
 	/**** Configuration ****/
 	public HashSet<Player> notAccepted = new HashSet<Player>(); //Hashset all (!online!) players with not accepted warnings
 	
@@ -49,7 +44,8 @@ public class CNWarn extends JavaPlugin {
 		
 		// Database
 		setupDatabase();		
-		registerEvents();
+		
+		new CubeWarnPlayerListener(this);
 		
 		// Output
 		cubeLog.info(msgPerm);
@@ -210,7 +206,107 @@ public class CNWarn extends JavaPlugin {
     			showHelp(player1);
     			return true;
     		}
-    	} 
+    	} else if (label.equalsIgnoreCase("watch") && this.perm.has(player1, "cubewarn.watch")) {
+    		int alenght = args.length;  		
+    		
+			//show the help
+    		if (alenght == 1 && args[0].equalsIgnoreCase("list")) {
+    			List<Watch> watchedUsers = getDatabase().find(Watch.class).findList();
+    			if (watchedUsers.size() > 0) {
+	    			player1.sendMessage(ChatColor.DARK_RED + "Beobachtete User:");
+	    			String userList = null;
+	                Iterator<Watch> i = watchedUsers.iterator();
+	                while (i.hasNext()) {
+	                	Watch watchedUser = i.next();
+	                	if (userList == null) userList = "" + watchedUser.getId() + ":" + watchedUser.getPlayername();
+	                	else userList += ", " + watchedUser.getId() + ":" +watchedUser.getPlayername();
+	                }
+	    			player1.sendMessage(ChatColor.AQUA + userList);
+
+    			} else {
+	    			player1.sendMessage(ChatColor.GREEN + "Es werden keine User beobachtet");
+
+    			}
+    			
+
+    		} else if (alenght == 2 && args[0].equalsIgnoreCase("info")) {
+                String playerName = args[1];
+                
+                int _id = -1;
+                try {
+                    _id = Integer.parseInt(playerName);
+                } catch (Exception e) {}
+                if (_id != -1 && !playerName.equals(Integer.toString(_id))) _id = -1;
+                
+                Watch watchedUser = null;
+                if (_id != -1)	watchedUser = getDatabase().find(Watch.class).setMaxRows(1).where().eq("id", _id).findUnique();
+                else			watchedUser = getDatabase().find(Watch.class).setMaxRows(1).where().ieq("playerName", playerName).findUnique();
+	            if (watchedUser != null) {
+	    			player1.sendMessage(ChatColor.DARK_RED + "Beobachteter User: " + watchedUser.getPlayername());
+	    			player1.sendMessage(ChatColor.AQUA + "Erstellt von " + watchedUser.getStaffname() + " am " + watchedUser.getCreated());
+	    			player1.sendMessage(ChatColor.AQUA + "Beschreibung: " + watchedUser.getMessage());
+	    			
+	            } else {
+	    			player1.sendMessage(ChatColor.GREEN + "Dieser User wird nicht beobachtet");
+	    			
+	            }
+	    		
+    		} else if (alenght == 2 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("remove"))) {
+                String playerName = args[1];
+	    		
+                int _id = -1;
+                try {
+                    _id = Integer.parseInt(playerName);
+                } catch (Exception e) {}
+                if (_id != -1 && !playerName.equals(Integer.toString(_id))) _id = -1;
+                
+                Watch watchedUser = null;
+                if (_id != -1)	watchedUser = getDatabase().find(Watch.class).setMaxRows(1).where().eq("id", _id).findUnique();
+                else			watchedUser = getDatabase().find(Watch.class).setMaxRows(1).where().ieq("playerName", playerName).findUnique();
+	            if (watchedUser != null) {
+	                getDatabase().delete(watchedUser);
+	    			player1.sendMessage(ChatColor.AQUA + watchedUser.getPlayername() + " erfolgreich von der Watchlist entfernt!");
+	    			
+	            } else {
+	    			player1.sendMessage(ChatColor.GREEN + "Dieser User wird nicht beobachtet");
+
+	            }
+	    		
+    		} else if (alenght == 0 || args[0].equalsIgnoreCase("help")) {
+    			player1.sendMessage(ChatColor.AQUA + "CNWarn - Watchlist");
+    			player1.sendMessage(ChatColor.AQUA + "/watch <name> <beschreibung> - Beobachtet diesen User");
+    			player1.sendMessage(ChatColor.AQUA + "/watch list - Listet alle beobachteten User auf");
+    			player1.sendMessage(ChatColor.AQUA + "/watch info <name|ID> - Gibt alle Infos zum User aus");
+    			player1.sendMessage(ChatColor.AQUA + "/watch delete <name|ID> - Lšscht den User aus der Beobachtungsliste");
+
+
+    		} else if (alenght > 0) {
+                String playerName = args[0];
+                
+                Watch watchedUser = getDatabase().find(Watch.class).setMaxRows(1).where().ieq("playerName", playerName).findUnique();
+                if (watchedUser == null) {
+                    String description = "";
+                    for (int i = 1; i < args.length; i++) {
+                    	description += (" " + args[i]);
+                    }
+                	description = description.trim();
+
+        			Watch watch = new Watch();
+        			watch.setPlayername(playerName);
+        			watch.setMessage(description);
+        			watch.setCreated(new Date());
+        			watch.setStaffname(player1.getName());
+        	        getDatabase().save(watch);
+        	        
+	    			player1.sendMessage(ChatColor.AQUA + playerName + " erfolgreich zur Watchlist hinzugefŸgt!");
+
+                } else {
+	    			player1.sendMessage(ChatColor.DARK_RED + "Dieser User steht bereits unter Beobachtung! Siehe: /watch info " + playerName);
+
+                }
+                
+    		}
+    	}
     	return true;
 	}
 	
@@ -231,6 +327,7 @@ public class CNWarn extends JavaPlugin {
 	public void setupDatabase() {
         try {
             getDatabase().find(Warn.class).findRowCount();
+            getDatabase().find(Watch.class).findRowCount();
         } catch (PersistenceException ex) {
             System.out.println("Installing database for " + getDescription().getName() + " due to first time usage");
             installDDL();
@@ -240,18 +337,12 @@ public class CNWarn extends JavaPlugin {
     @Override
     public List<Class<?>> getDatabaseClasses() {
         List<Class<?>> list = new ArrayList<Class<?>>();
+        list.add(Watch.class);
         list.add(Warn.class);
         return list;
     }
 
 
-	public void registerEvents() {
-		PluginManager pm = this.getServer().getPluginManager();
-		pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Priority.Highest, this);
-		pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Priority.Highest, this);
-		pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Highest, this);
-		pm.registerEvent(Event.Type.PLAYER_CHAT, playerListener, Priority.Highest, this);
-	}	
 
 	/**** Database related Methods (Insert, Update, Delete, Select) ****/
 	private Integer getWarnCount(String playerName) {
