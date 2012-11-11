@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -83,14 +83,17 @@ public class CubeWarnPlayerListener implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onPlayerChat(PlayerChatEvent event) {
-		Player player = event.getPlayer();
+	public void onPlayerChat(AsyncPlayerChatEvent event) {
+		final Player player = event.getPlayer();
 		if (plugin.notAccepted.contains(player)) {
-    		player.sendMessage(ChatColor.DARK_RED + "!!! ACHTUNG !!! " + ChatColor.YELLOW + player.getName() + ChatColor.DARK_RED + " DU WURDEST VERWARNT !!!");
-    		player.sendMessage(ChatColor.DARK_RED + "Du kannst dich jetzt nicht mehr bewegen,");
-    		player.sendMessage(ChatColor.DARK_RED + "bis du die Verwarnung aktzeptiert hast.");
-    		player.sendMessage(ChatColor.DARK_RED + "Mit " + ChatColor.GREEN  + "/warn info" + ChatColor.DARK_RED + " kannst du dir den Grund ansehen.");
-    		player.sendMessage(ChatColor.DARK_RED + "Mit " + ChatColor.GREEN  + "/warn accept" + ChatColor.DARK_RED + " aktzeptierst du die Verwarnung.");;
+			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() { public void run() {
+				player.sendMessage(ChatColor.DARK_RED + "!!! ACHTUNG !!! " + ChatColor.YELLOW + player.getName() + ChatColor.DARK_RED + " DU WURDEST VERWARNT !!!");
+	    		player.sendMessage(ChatColor.DARK_RED + "Du kannst dich jetzt nicht mehr bewegen,");
+	    		player.sendMessage(ChatColor.DARK_RED + "bis du die Verwarnung aktzeptiert hast.");
+	    		player.sendMessage(ChatColor.DARK_RED + "Mit " + ChatColor.GREEN  + "/warn info" + ChatColor.DARK_RED + " kannst du dir den Grund ansehen.");
+	    		player.sendMessage(ChatColor.DARK_RED + "Mit " + ChatColor.GREEN  + "/warn accept" + ChatColor.DARK_RED + " aktzeptierst du die Verwarnung.");;
+			}}, 0L);
+
 		}
 	}
 }

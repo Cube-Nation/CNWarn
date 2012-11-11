@@ -52,6 +52,10 @@ public class CNWarn extends JavaPlugin {
 		cubeLog.info(logPrefix + "Version " + this.getDescription().getVersion() + " enabled");
 	}
 	
+	public void clearOld() {
+		getDatabase().createSqlUpdate("UPDATE `cn_warns` SET rating = 0 WHERE TO_DAYS(NOW()) - TO_DAYS(`accepted`) > 30").execute();
+	}
+	
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     	// player is the warned player; player1 is the sender
     	// permissions cubewarn.staff & cubewarn.admin
@@ -67,7 +71,9 @@ public class CNWarn extends JavaPlugin {
     			
     		//shows a list of warnings for a player
     		} else if (alenght <= 2 && args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("info")) {
-	    		//show warnings for the sender (/show list)
+    			clearOld();
+
+    			//show warnings for the sender (/show list)
     			if (alenght != 2) {
 	    			String playerName = player1.getName();
 	    			//show list of all warnings for the sender
@@ -96,7 +102,8 @@ public class CNWarn extends JavaPlugin {
 	    		}
     		//search 
     		} else if (alenght <= 2 && args[0].equalsIgnoreCase("search") || args[0].equalsIgnoreCase("check") && this.perm.has(player1, "cubewarn.staff")) {
-    			
+    			clearOld();
+
     			if (args.length <= 1 || args[1].length() < 3) {
     				player1.sendMessage(ChatColor.DARK_RED  + "Der Suchbegriff muss mindestens 3 Zeichen enthalten.");
     			} else {
@@ -152,6 +159,8 @@ public class CNWarn extends JavaPlugin {
     			
     		// warn a specific player
     		} else if (args.length >= 3 && this.perm.has(player1, "cubewarn.staff")) {
+    			
+    			clearOld();
     			
 	    		String message = "";
 	    		Integer rating;
@@ -380,7 +389,7 @@ public class CNWarn extends JavaPlugin {
 		offlineWarnings.put(player1, new ConfirmOfflineWarnTable(playerName, message, rating));
 		player1.sendMessage(ChatColor.YELLOW + playerName + ChatColor.RED + " ist offline.");
 		player1.sendMessage(ChatColor.WHITE + "Bist du sicher, dass du den Namen richtig geschrieben hast?");
-		player1.sendMessage(ChatColor.YELLOW + "/warn confirm" + ChatColor.GREEN + ", um die Verwarnung zu bestätigen.");
+		player1.sendMessage(ChatColor.YELLOW + "/warn confirm" + ChatColor.GREEN + ", um die Verwarnung zu bestŠtigen.");
 	}	
 	
 	private void confirmOfflinePlayerWarning(Player player1) {
@@ -393,7 +402,7 @@ public class CNWarn extends JavaPlugin {
 			warnPlayer(playerName, player1, message, rating);
 
 		} else {
-			player1.sendMessage("Es existiert keine offline Verwarnung, die bestätigt werden kann.");
+			player1.sendMessage("Es existiert keine offline Verwarnung, die bestŠtigt werden kann.");
 		}
 	}
 
@@ -454,24 +463,28 @@ public class CNWarn extends JavaPlugin {
 		if (this.perm.has(player1, "cubewarn.staff")){
 			player1.sendMessage(ChatColor.RED + "/warn [Spielername][Grund][Bewertung]" + ChatColor.WHITE + " Verwarnt einen Spieler");
 			player1.sendMessage(ChatColor.RED + "/warn list [Spielername]:" + ChatColor.WHITE + " Zeigt alle Verwarnungen des Spielers");
-			player1.sendMessage(ChatColor.RED + "/warn confirm:" + ChatColor.WHITE + " Bestätigt die Verwarnung eines offline Spielers");
+			player1.sendMessage(ChatColor.RED + "/warn confirm:" + ChatColor.WHITE + " BestŠtigt die Verwarnung eines offline Spielers");
 			player1.sendMessage(ChatColor.RED + "/warn search:" + ChatColor.WHITE + " Nach einem Spieler suchen.");
 		}
 		if (this.perm.has(player1, "cubewarn.admin")){
-			player1.sendMessage(ChatColor.RED + "/warn del [id]:" + ChatColor.WHITE + " Löscht eine einzelne Verwarnung");
-			player1.sendMessage(ChatColor.RED + "/warn delall [Spielername]:" + ChatColor.WHITE + " Löscht alle Verwarnungen des Spielers");
+			player1.sendMessage(ChatColor.RED + "/warn del [id]:" + ChatColor.WHITE + " Lšscht eine einzelne Verwarnung");
+			player1.sendMessage(ChatColor.RED + "/warn delall [Spielername]:" + ChatColor.WHITE + " Lšscht alle Verwarnungen des Spielers");
 		}
 	}	
 	
 	private void showList(String playerName, Player player1) {
 		SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy 'um' hh:mm 'Uhr'");
+		int ratingGesamt = 0;
 		for (Warn warn : getDatabase().find(Warn.class).where().like("playername", "%"+playerName+"%").findList()) {
 			Date date = warn.getCreated();		
-			String created = formatter.format(date);					
+			String created = formatter.format(date);
+			ratingGesamt += warn.getRating();
 			
 			player1.sendMessage(ChatColor.YELLOW + "[" + warn.getId() + "] Grund: " + ChatColor.WHITE + warn.getMessage() + " [Stufe " + warn.getRating() + "]");
 			player1.sendMessage(ChatColor.YELLOW + "     " +ChatColor.WHITE + created  + " von " + ChatColor.YELLOW + warn.getStaffname() + ChatColor.WHITE + " akzeptiert: "  + (warn.getAccepted() == null ? "Nein" : "Ja") );
 		}
+		
+		player1.sendMessage(ChatColor.RED + "Gesamtpunktzahl: " + ChatColor.WHITE + ratingGesamt);
 	
 	}
 	

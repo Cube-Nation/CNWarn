@@ -40,7 +40,9 @@
         <dependency>
         	<groupId>org.bukkit</groupId>
         	<artifactId>bukkit</artifactId>
-        	<version>1.1-R5-SNAPSHOT</version>
-        </dependency>
+        	<version>1.2.3.1-R2.0</version>
+		    <scope>system</scope>
+		    <systemPath>${basedir}/dependencies/craftbukkit-1-2.3.1-R2.0.jar</systemPath>
+		</dependency>
     </dependencies>
 </project>
