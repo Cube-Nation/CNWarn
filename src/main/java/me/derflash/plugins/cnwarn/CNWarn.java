@@ -435,7 +435,7 @@ public class CNWarn extends JavaPlugin {
 	}	
 	
 	private void acceptWarnings(String playerName) {
-		Set<Warn> unAccWarns = getDatabase().find(Warn.class).where().ieq("playername", playerName).findSet();
+		Set<Warn> unAccWarns = getDatabase().find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findSet();
 		for (Warn warn : unAccWarns) {
 			warn.setAccepted(new Date());
 		}
