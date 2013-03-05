@@ -7,8 +7,8 @@
     <url>http://www.cube-nation.de/</url>
     <repositories>
         <repository>
-            <id>bukkit-repo</id>
-            <url>http://repo.bukkit.org/artifactory/repo</url>
+            <id>cna-public-repos</id>
+            <url>http://cube-nation.de:8081/nexus/content/groups/public/</url>
         </repository>
     </repositories>
     <build>
@@ -35,14 +35,12 @@
         <dependency>
         	<groupId>ru.tehkode</groupId>
         	<artifactId>PermissionsEx</artifactId>
-        	<version>1.17</version>
+        	<version>1.19.4</version>
         </dependency>
         <dependency>
         	<groupId>org.bukkit</groupId>
         	<artifactId>bukkit</artifactId>
-        	<version>1.2.3.1-R2.0</version>
-		    <scope>system</scope>
-		    <systemPath>${basedir}/dependencies/craftbukkit-1-2.3.1-R2.0.jar</systemPath>
+        	<version>1.4.5-R1.0</version>
 		</dependency>
     </dependencies>
 </project>
