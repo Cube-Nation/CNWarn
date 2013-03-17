@@ -1,14 +1,15 @@
 author: DerFlash
 database: true
-description: Cube-Nation Warn Plugin - Based on Butzenbaer's CubeWarn
-generator: http://dinnerbone.com/minecraft/tools/pluginator/
-main: me.derflash.plugins.cnwarn.CNWarn
+description: Cube-Nation Warn Plugin
+main: de.derflash.plugins.cnwarn.CNWarn
 name: CNWarn
 startup: postworld
 url: http://www.cube-nation.de/
-version: '1.0'
-depend:
+version: '${project.version}'
+
+softdepend:
   - PermissionsEx
+
 commands:
     warn:
         description: warn a player
@@ -16,3 +17,13 @@ commands:
     watch:
         description: watch a player
         usage: /watch help for more information
+
+permissions:
+  cnwarn.watch:
+    description: ...
+  cubewarn.watch
+    description: ...
+  cubewarn.staff:
+    description: ...
+  cubewarn.admin:
+    description: ...

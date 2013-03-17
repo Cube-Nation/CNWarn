@@ -1,7 +1,8 @@
-package me.derflash.plugins.cnwarn;
+package de.derflash.plugins.cnwarn.model;
 
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -11,10 +12,6 @@ import org.bukkit.entity.Player;
 
 import com.avaje.ebean.validation.NotNull;
 
-/**
- *
- * @author DerFlash
- */
 @Entity()
 @Table(name = "cn_watch")
 public class Watch {
@@ -24,15 +21,16 @@ public class Watch {
 
     @NotNull
     private String playername;
-    
+
     @NotNull
     private String staffname;
-    
+
+    @Column
     private String message;
-    
+
     @NotNull
     private Date created;
-    
+
     public void setId(int id) {
         this.id = id;
     }
@@ -57,27 +55,27 @@ public class Watch {
         this.playername = player.getName();
     }
 
-	public String getStaffname() {
-		return staffname;
-	}
+    public String getStaffname() {
+        return staffname;
+    }
 
-	public void setStaffname(String staffname) {
-		this.staffname = staffname;
-	}
+    public void setStaffname(String staffname) {
+        this.staffname = staffname;
+    }
 
-	public String getMessage() {
-		return message;
-	}
+    public String getMessage() {
+        return message;
+    }
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
+    public void setMessage(String message) {
+        this.message = message;
+    }
 
-	public Date getCreated() {
-		return created;
-	}
+    public Date getCreated() {
+        return created;
+    }
 
-	public void setCreated(Date created) {
-		this.created = created;
-	}
+    public void setCreated(Date created) {
+        this.created = created;
+    }
 }
