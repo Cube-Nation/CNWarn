@@ -63,7 +63,7 @@ public class WarnAddCommand {
         Player warnPlayer = Bukkit.getServer().getPlayer(playerName);
         if (warnPlayer instanceof Player) {
             // check if the player tries to warn himself
-            warnService.warnPlayer(player.getName(), player, message, rating);
+            warnService.warnPlayer(warnPlayer.getName(), player, message, rating);
 
             chatService.showPlayerNewWarning(warnPlayer);
         } else {
