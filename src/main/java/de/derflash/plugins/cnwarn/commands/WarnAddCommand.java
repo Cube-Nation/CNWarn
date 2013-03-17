@@ -67,7 +67,7 @@ public class WarnAddCommand {
 
             chatService.showPlayerNewWarning(warnPlayer);
         } else {
-            warnService.warnOfflinePlayer(warnPlayer.getName(), player, message, rating);
+            warnService.warnOfflinePlayer(playerName, player, message, rating);
         }
     }
 }
