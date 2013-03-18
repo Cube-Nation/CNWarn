@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.bukkit.entity.Player;
 
-import de.cubenation.plugins.utils.commandapi.annotation.Asynchron;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.model.Watch;
@@ -22,7 +21,6 @@ public class WatchListCommand {
 
     @Command(main = "watch", sub = "list", max = 0, help = "Listet alle beobachteten Spieler auf")
     @CommandPermissions("cubewarn.watch")
-    @Asynchron
     public void listWatch(Player player) {
         List<Watch> watchedPlayers = watchService.getAllWatches();
         if (watchedPlayers.size() > 0) {

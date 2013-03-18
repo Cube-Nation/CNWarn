@@ -2,7 +2,6 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
-import de.cubenation.plugins.utils.commandapi.annotation.Asynchron;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.services.ChatService;
@@ -19,7 +18,6 @@ public class WarnDeleteCommand {
 
     @Command(main = "warn", sub = "del", min = 1, max = 1, usage = "[Id]", help = "Löscht eine einzelne Verwarnung")
     @CommandPermissions("cubewarn.admin")
-    @Asynchron
     public void deleteWarning(Player player, String amount) {
         Integer id;
         try {
@@ -34,7 +32,6 @@ public class WarnDeleteCommand {
 
     @Command(main = "warn", sub = "delall", min = 1, max = 1, usage = "[Spieler]", help = "Löscht alle Verwarnungen des Spielers")
     @CommandPermissions("cubewarn.admin")
-    @Asynchron
     public void deleteAllWarning(Player player, String playerName) {
         if (warnService.warnedPlayersContains(playerName)) {
             // delete all warnings if the player was warned

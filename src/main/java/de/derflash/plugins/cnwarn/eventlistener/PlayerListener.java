@@ -31,28 +31,23 @@ public class PlayerListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(final PlayerJoinEvent event) {
-        new Thread("OnPlayerJoin") {
-            @Override
-            public void run() {
-                Player player = event.getPlayer();
+        Player player = event.getPlayer();
 
-                if (warnService.hasUnacceptedWarnings(player.getName())) {
-                    warnService.addNotAccepted(player);
-                    chatService.showPlayerNewWarning(player);
-                }
+        if (warnService.hasUnacceptedWarnings(player.getName())) {
+            warnService.addNotAccepted(player);
+            chatService.showPlayerNewWarning(player);
+        }
 
-                Watch watchedPlayer = watchService.getWatchedPlayerByName(player.getName());
-                if (watchedPlayer != null) {
+        Watch watchedPlayer = watchService.getWatchedPlayerByName(player.getName());
+        if (watchedPlayer != null) {
 
-                    // inform admins
-                    for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
-                        if (permissionService.hasPermission(onlinePlayer, "cnwarn.watch")) {
-                            chatService.showStaffJoinWatchedPlayer(onlinePlayer, watchedPlayer);
-                        }
-                    }
+            // inform admins
+            for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
+                if (permissionService.hasPermission(onlinePlayer, "cnwarn.watch")) {
+                    chatService.showStaffJoinWatchedPlayer(onlinePlayer, watchedPlayer);
                 }
             }
-        }.start();
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -89,11 +84,7 @@ public class PlayerListener implements Listener {
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         final Player player = event.getPlayer();
         if (warnService.containsNotAccepted(player)) {
-            new Thread("PlayerInfo") {
-                public void run() {
-                    chatService.showPlayerNewWarning(player);
-                }
-            }.start();
+            chatService.showPlayerNewWarning(player);
         }
     }
 }
