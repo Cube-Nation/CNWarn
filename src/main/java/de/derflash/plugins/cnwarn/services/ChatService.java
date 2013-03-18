@@ -193,4 +193,8 @@ public class ChatService {
             player.sendMessage(ChatColor.YELLOW + out);
         }
     }
+
+    public void showStaffPlayerNeverPlayedBefore(Player player, String playerName) {
+        player.sendMessage(ChatColor.DARK_RED + "Verwarnung nicht angenommen! Der Spieler " + playerName + " war noch nie auf diesem Server.");
+    }
 }
