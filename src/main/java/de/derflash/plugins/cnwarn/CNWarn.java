@@ -40,9 +40,13 @@ public class CNWarn extends JavaPlugin {
     private WatchService watchService;
 
     private CommandsManager commandsManager;
+    
+    public static CNWarn p;
 
     @Override
     public void onEnable() {
+    	CNWarn.p = this;
+    	
         setupDatabase();
 
         permissionService = new PermissionService();

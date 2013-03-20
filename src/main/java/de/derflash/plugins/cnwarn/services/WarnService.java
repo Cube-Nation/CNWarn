@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlRow;
 
+import de.derflash.plugins.cnwarn.CNWarn;
 import de.derflash.plugins.cnwarn.model.ConfirmOfflineWarnTable;
 import de.derflash.plugins.cnwarn.model.Warn;
 
@@ -76,7 +77,7 @@ public class WarnService {
 
             OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerName);
 
-            if (!offlinePlayer.hasPlayedBefore()) {
+            if (!hasPlayedBefore(offlinePlayer)) {
                 chatService.showStaffPlayerNeverPlayedBefore(player, offlinePlayer.getName());
             } else {
                 warnPlayer(playerName, player, message, rating);
@@ -164,5 +165,10 @@ public class WarnService {
 
     public boolean containsNotAccepted(Player player) {
         return notAccepted.contains(player);
+    }
+    
+    public boolean hasPlayedBefore(OfflinePlayer player) {
+//    	return player.hasPlayedBefore();
+    	return (CNWarn.p.getDatabase().createSqlQuery("SELECT * FROM `lb-players` WHERE LOWER(playername) = LOWER('" + player.getName() + "')").findUnique() != null);
     }
 }

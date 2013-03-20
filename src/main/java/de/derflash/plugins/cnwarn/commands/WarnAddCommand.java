@@ -62,10 +62,14 @@ public class WarnAddCommand {
         if (warnPlayer instanceof Player) {
             // check if the player tries to warn himself
             warnService.warnPlayer(warnPlayer.getName(), player, message, rating);
-
             chatService.showPlayerNewWarning(warnPlayer);
+            
+        } else if (warnService.hasPlayedBefore(Bukkit.getOfflinePlayer(playerName))) {
+            warnService.warnPlayer(Bukkit.getOfflinePlayer(playerName).getName(), player, message, rating);
+        
         } else {
-            warnService.warnOfflinePlayer(playerName, player, message, rating);
+            chatService.showStaffPlayerNeverPlayedBefore(player, playerName);
+
         }
     }
 }
