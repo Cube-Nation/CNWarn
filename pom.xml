@@ -75,8 +75,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.bukkit</groupId>
-			<artifactId>bukkit</artifactId>
-			<version>1.4.7-R1.0</version>
+			<artifactId>craftbukkit</artifactId>
+			<version>1.5-R0.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.kitteh.vanish</groupId>
