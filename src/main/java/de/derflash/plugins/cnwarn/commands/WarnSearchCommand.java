@@ -2,7 +2,6 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
-import de.cubenation.plugins.utils.commandapi.annotation.Asynchron;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.services.ChatService;
@@ -19,7 +18,6 @@ public class WarnSearchCommand {
 
     @Command(main = "warn", sub = { "search", "check" }, max = 1, usage = "[Spieler]", help = "Nach einem Spieler suchen.")
     @CommandPermissions("cubewarn.staff")
-    @Asynchron
     public void checkWarning(Player player, String[] args) {
         warnService.clearOld();
 

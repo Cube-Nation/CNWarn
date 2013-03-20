@@ -2,7 +2,6 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
-import de.cubenation.plugins.utils.commandapi.annotation.Asynchron;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.services.ChatService;
@@ -19,7 +18,6 @@ public class WatchAddCommand {
 
     @Command(main = "watch", min = 1, usage = "[Spieler] [Beschreibung]", help = "Beobachtet diesen Spieler")
     @CommandPermissions("cubewarn.watch")
-    @Asynchron
     public void addWatch(Player player, String[] args) {
         String playerName = args[0];
 

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import com.avaje.ebean.EbeanServer;
@@ -73,7 +74,13 @@ public class WarnService {
             Integer rating = offlineWarnings.get(player).rating;
             offlineWarnings.remove(player);
 
-            warnPlayer(playerName, player, message, rating);
+            OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerName);
+
+            if (!offlinePlayer.hasPlayedBefore()) {
+                chatService.showStaffPlayerNeverPlayedBefore(player, offlinePlayer.getName());
+            } else {
+                warnPlayer(playerName, player, message, rating);
+            }
         } else {
             chatService.showStaffNoConfirmWarning(player);
         }

@@ -2,7 +2,6 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
-import de.cubenation.plugins.utils.commandapi.annotation.Asynchron;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.model.Watch;
@@ -20,7 +19,6 @@ public class WatchInfoCommand {
 
     @Command(main = "watch", sub = "info", min = 1, max = 1, usage = "[Spieler/Id]", help = "Gibt alle Infos zum Spieler aus")
     @CommandPermissions("cubewarn.watch")
-    @Asynchron
     public void infoWatch(Player player, String playerName) {
         int id = -1;
         try {

@@ -2,7 +2,6 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
-import de.cubenation.plugins.utils.commandapi.annotation.Asynchron;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.services.ChatService;
@@ -18,7 +17,6 @@ public class WarnListCommand {
     }
 
     @Command(main = "warn", sub = { "list", "info" }, min = 0, max = 0, help = "Zeigt dir deine Verwarnungen an.")
-    @Asynchron
     public void listWarningPlayer(Player player) {
         warnService.clearOld();
 
@@ -32,7 +30,6 @@ public class WarnListCommand {
 
     @Command(main = "warn", sub = { "list", "info" }, min = 1, max = 1, usage = "[Spieler]", help = "Zeigt alle Verwarnungen des Spielers")
     @CommandPermissions("cubewarn.staff")
-    @Asynchron
     public void listWarningAdmin(Player player, String playerName) {
         warnService.clearOld();
 

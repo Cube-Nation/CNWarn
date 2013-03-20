@@ -47,7 +47,7 @@ public class ChatService {
                 GregorianCalendar acceptedDate = new GregorianCalendar();
                 acceptedDate.setTime(warn.getAccepted());
                 acceptedDate.add(Calendar.DAY_OF_MONTH, 30);
-                String accepted = formatter.format(acceptedDate);
+                String accepted = formatter.format(acceptedDate.getTime());
 
                 player.sendMessage("     " + ChatColor.WHITE + "Verfällt am: " + accepted);
             }
@@ -192,5 +192,9 @@ public class ChatService {
             }
             player.sendMessage(ChatColor.YELLOW + out);
         }
+    }
+
+    public void showStaffPlayerNeverPlayedBefore(Player player, String playerName) {
+        player.sendMessage(ChatColor.DARK_RED + "Verwarnung nicht angenommen! Der Spieler " + playerName + " war noch nie auf diesem Server.");
     }
 }

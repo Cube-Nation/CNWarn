@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import de.cubenation.plugins.utils.commandapi.annotation.Asynchron;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.services.ChatService;
@@ -23,7 +22,6 @@ public class WarnAddCommand {
 
     @Command(main = "warn", min = 3, usage = "[Spieler] [Grund] [Bewertung]", help = "Verwarnt einen Spieler")
     @CommandPermissions("cubewarn.staff")
-    @Asynchron
     public void addWarning(Player player, String[] args) {
         warnService.clearOld();
 

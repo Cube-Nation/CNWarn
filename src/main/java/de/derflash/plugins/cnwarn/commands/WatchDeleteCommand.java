@@ -2,7 +2,6 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
-import de.cubenation.plugins.utils.commandapi.annotation.Asynchron;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.model.Watch;
@@ -20,7 +19,6 @@ public class WatchDeleteCommand {
 
     @Command(main = "watch", sub = { "delete", "remove" }, min = 1, max = 1, usage = "[Spieler/Id]", help = "Löscht den Spieler aus der Beobachtungsliste")
     @CommandPermissions("cubewarn.watch")
-    @Asynchron
     public void deleteWatch(Player player, String playerName) {
         int id = -1;
         try {
