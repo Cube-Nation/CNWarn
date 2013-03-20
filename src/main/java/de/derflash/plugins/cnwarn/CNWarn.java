@@ -15,12 +15,13 @@ import de.cubenation.plugins.utils.commandapi.ErrorHandler;
 import de.cubenation.plugins.utils.commandapi.exception.CommandException;
 import de.cubenation.plugins.utils.commandapi.exception.CommandManagerException;
 import de.cubenation.plugins.utils.commandapi.exception.CommandWarmUpException;
+import de.cubenation.plugins.utils.permissionapi.PermissionService;
 import de.derflash.plugins.cnwarn.commands.WarnAcceptCommand;
 import de.derflash.plugins.cnwarn.commands.WarnAddCommand;
-import de.derflash.plugins.cnwarn.commands.WarnSearchCommand;
 import de.derflash.plugins.cnwarn.commands.WarnConfirmCommand;
 import de.derflash.plugins.cnwarn.commands.WarnDeleteCommand;
 import de.derflash.plugins.cnwarn.commands.WarnListCommand;
+import de.derflash.plugins.cnwarn.commands.WarnSearchCommand;
 import de.derflash.plugins.cnwarn.commands.WatchAddCommand;
 import de.derflash.plugins.cnwarn.commands.WatchDeleteCommand;
 import de.derflash.plugins.cnwarn.commands.WatchInfoCommand;
@@ -29,23 +30,25 @@ import de.derflash.plugins.cnwarn.eventlistener.PlayerListener;
 import de.derflash.plugins.cnwarn.model.Warn;
 import de.derflash.plugins.cnwarn.model.Watch;
 import de.derflash.plugins.cnwarn.services.ChatService;
-import de.derflash.plugins.cnwarn.services.PermissionService;
 import de.derflash.plugins.cnwarn.services.WarnService;
 import de.derflash.plugins.cnwarn.services.WatchService;
 
 public class CNWarn extends JavaPlugin {
-    private ChatService chatService;
+    // framework services
     private PermissionService permissionService;
+    private CommandsManager commandsManager;
+
+    // local services
+    private ChatService chatService;
     private WarnService warnService;
     private WatchService watchService;
-
-    private CommandsManager commandsManager;
 
     @Override
     public void onEnable() {
         setupDatabase();
 
         permissionService = new PermissionService();
+
         chatService = new ChatService();
         warnService = new WarnService(getDatabase(), chatService);
         watchService = new WatchService(getDatabase());

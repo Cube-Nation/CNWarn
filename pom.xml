@@ -24,6 +24,7 @@
 				<directory>${basedir}/src/main/resources</directory>
 				<filtering>true</filtering>
 				<includes>
+					<include>CNWarn_messages.properties</include>
 					<include>plugin.yml</include>
 				</includes>
 			</resource>
@@ -86,7 +87,7 @@
 		<dependency>
 			<groupId>de.cubenation.plugins.utils</groupId>
 			<artifactId>PluginUtils</artifactId>
-			<version>0.0.7</version>
+			<version>0.0.10</version>
 		</dependency>
 	</dependencies>
 </project>
