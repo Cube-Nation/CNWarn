@@ -10,9 +10,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import de.cubenation.plugins.utils.permissionapi.PermissionService;
 import de.derflash.plugins.cnwarn.model.Watch;
 import de.derflash.plugins.cnwarn.services.ChatService;
-import de.derflash.plugins.cnwarn.services.PermissionService;
 import de.derflash.plugins.cnwarn.services.WarnService;
 import de.derflash.plugins.cnwarn.services.WatchService;
 
