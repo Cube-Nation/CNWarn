@@ -87,7 +87,7 @@
 		<dependency>
 			<groupId>de.cubenation.plugins.utils</groupId>
 			<artifactId>PluginUtils</artifactId>
-			<version>0.0.10</version>
+			<version>0.0.11</version>
 		</dependency>
 	</dependencies>
 </project>

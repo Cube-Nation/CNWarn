@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlRow;
 
-import de.derflash.plugins.cnwarn.CNWarn;
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.derflash.plugins.cnwarn.model.ConfirmOfflineWarnTable;
 import de.derflash.plugins.cnwarn.model.Warn;
 
@@ -55,7 +55,11 @@ public class WarnService {
         newWarn.setCreated(new Date());
         dbConnection.save(newWarn);
 
-        chatService.showStaffNewWarn(staffMember, warnedPlayer, message, rating, wasWarned, getWarnCount(warnedPlayer), getRatingSum(warnedPlayer));
+        chatService.one(staffMember, "staff.newWarn", warnedPlayer, message, rating.toString());
+
+        if (wasWarned) {
+            chatService.one(staffMember, "staff.warnExists", warnedPlayer, getWarnCount(warnedPlayer).toString(), getRatingSum(warnedPlayer).toString());
+        }
 
         Player player = Bukkit.getServer().getPlayer(warnedPlayer);
         if (player != null) {
@@ -65,7 +69,7 @@ public class WarnService {
 
     public void warnOfflinePlayer(String playerName, Player player, String message, Integer rating) {
         offlineWarnings.put(player, new ConfirmOfflineWarnTable(playerName, message, rating));
-        chatService.showStaffOfflinePlayer(player, playerName);
+        chatService.one(player, "staff.warnOffline", playerName);
     }
 
     public void confirmOfflinePlayerWarning(Player player) {
@@ -78,12 +82,12 @@ public class WarnService {
             OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerName);
 
             if (!hasPlayedBefore(offlinePlayer)) {
-                chatService.showStaffPlayerNeverPlayedBefore(player, offlinePlayer.getName());
+                chatService.one(player, "staff.playerNotJoinedBefore", offlinePlayer.getName());
             } else {
                 warnPlayer(playerName, player, message, rating);
             }
         } else {
-            chatService.showStaffNoConfirmWarning(player);
+            chatService.one(player, "staff.noOfflineWarn");
         }
     }
 
@@ -97,7 +101,7 @@ public class WarnService {
                 notAccepted.remove(onlinePlayer);
             }
 
-            chatService.showStaffDelWarning(staffplayer, id);
+            chatService.one(staffplayer, "staff.warnDeleted", id);
         }
     }
 
@@ -118,7 +122,7 @@ public class WarnService {
             notAccepted.remove(onlinePlayer);
         }
 
-        chatService.showStaffDelAllWarning(staffplayer, playerName);
+        chatService.one(staffplayer, "staff.deleteAllWarn", playerName);
     }
 
     public void acceptWarnings(String playerName) {
@@ -143,12 +147,26 @@ public class WarnService {
     }
 
     public void showSuggestions(String playerName, Player player) {
-        chatService.showStaffSearch(player, playerName);
+        chatService.one(player, "staff.searchWarnedPlayers", playerName);
 
         String query = "select distinct `playername` from cn_warns where `playername` like '%" + playerName + "%' limit 8";
 
         List<SqlRow> found = dbConnection.createSqlQuery(query).findList();
-        chatService.showStaffSearchResult(player, found);
+
+        if (found.isEmpty()) {
+            chatService.one(player, "staff.noSearchEntries");
+        } else {
+            String out = "";
+            for (SqlRow row : found) {
+                String _name = row.getString("playername");
+                if (out.length() == 0) {
+                    out = _name;
+                } else {
+                    out = out + ", " + _name;
+                }
+            }
+            chatService.one(player, "staff.searchEntries", out);
+        }
     }
 
     public List<Warn> getWarnList(String playerName) {
@@ -166,9 +184,8 @@ public class WarnService {
     public boolean containsNotAccepted(Player player) {
         return notAccepted.contains(player);
     }
-    
+
     public boolean hasPlayedBefore(OfflinePlayer player) {
-//    	return player.hasPlayedBefore();
-    	return (CNWarn.p.getDatabase().createSqlQuery("SELECT * FROM `lb-players` WHERE LOWER(playername) = LOWER('" + player.getName() + "')").findUnique() != null);
+        return (dbConnection.createSqlQuery("select * from `lb-players` where lower(playername) = lower('" + player.getName() + "')").findUnique() != null);
     }
 }

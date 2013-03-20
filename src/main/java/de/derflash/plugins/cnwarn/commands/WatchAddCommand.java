@@ -2,9 +2,9 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
-import de.derflash.plugins.cnwarn.services.ChatService;
 import de.derflash.plugins.cnwarn.services.WatchService;
 
 public class WatchAddCommand {
@@ -29,9 +29,9 @@ public class WatchAddCommand {
             description = description.trim();
 
             watchService.addWatch(playerName, description, player.getName());
-            chatService.showStaffAddWatch(player, playerName);
+            chatService.one(player, "staff.watchAdded", playerName);
         } else {
-            chatService.showStaffAlreadyAddedWatch(player, playerName);
+            chatService.one(player, "staff.watchAlready", playerName);
         }
     }
 }

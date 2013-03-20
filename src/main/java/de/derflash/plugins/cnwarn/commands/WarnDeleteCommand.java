@@ -2,9 +2,9 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
-import de.derflash.plugins.cnwarn.services.ChatService;
 import de.derflash.plugins.cnwarn.services.WarnService;
 
 public class WarnDeleteCommand {
@@ -23,7 +23,7 @@ public class WarnDeleteCommand {
         try {
             id = Integer.parseInt(amount);
         } catch (Exception e) {
-            chatService.showStaffDelWarnCorrect(player);
+            chatService.one(player, "staff.warnDeleteWarnId");
             return;
         }
 
@@ -38,7 +38,7 @@ public class WarnDeleteCommand {
             warnService.deleteWarnings(playerName, player);
         } else {
             // nothing to delete, player has no warnings
-            chatService.showStaffPlayerHasNoWarning(player, playerName);
+            chatService.one(player, "staff.noDeletedWarn", playerName);
         }
     }
 }

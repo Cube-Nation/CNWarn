@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.model.Watch;
-import de.derflash.plugins.cnwarn.services.ChatService;
 import de.derflash.plugins.cnwarn.services.WatchService;
 
 public class WatchListCommand {
@@ -24,9 +24,9 @@ public class WatchListCommand {
     public void listWatch(Player player) {
         List<Watch> watchedPlayers = watchService.getAllWatches();
         if (watchedPlayers.size() > 0) {
-            chatService.showStaffAllWatchedPlayers(player, watchedPlayers);
+            chatService.one(player, "staff.watchedPlayer", watchedPlayers);
         } else {
-            chatService.showStaffNoWatchedPlayers(player);
+            chatService.one(player, "staff.noWatchPlayers");
         }
     }
 }

@@ -6,9 +6,9 @@ import java.util.LinkedList;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
-import de.derflash.plugins.cnwarn.services.ChatService;
 import de.derflash.plugins.cnwarn.services.WarnService;
 
 public class WarnAddCommand {
@@ -41,7 +41,7 @@ public class WarnAddCommand {
 
         // check if the message is at least 5 chars long
         if (message.length() <= 4) {
-            chatService.showStaffAddWarnCorrectDesc(player);
+            chatService.one(player, "staff.warnDescToShort");
             return;
         }
 
@@ -49,11 +49,11 @@ public class WarnAddCommand {
         try {
             rating = Integer.parseInt(rate);
             if (rating > 6 || rating <= 0) {
-                chatService.showStaffAddWarnCorrectRating(player);
+                chatService.one(player, "staff.warnRateWrong");
                 return;
             }
         } catch (Exception e) {
-            chatService.showStaffAddWarnCorrectRatingNum(player);
+            chatService.one(player, "staff.warnRateNoNum");
             return;
         }
 
@@ -62,14 +62,13 @@ public class WarnAddCommand {
         if (warnPlayer instanceof Player) {
             // check if the player tries to warn himself
             warnService.warnPlayer(warnPlayer.getName(), player, message, rating);
-            chatService.showPlayerNewWarning(warnPlayer);
-            
+            chatService.one(warnPlayer, "player.warnJoinInfo", warnPlayer.getName());
+
         } else if (warnService.hasPlayedBefore(Bukkit.getOfflinePlayer(playerName))) {
             warnService.warnPlayer(Bukkit.getOfflinePlayer(playerName).getName(), player, message, rating);
-        
-        } else {
-            chatService.showStaffPlayerNeverPlayedBefore(player, playerName);
 
+        } else {
+            chatService.one(player, "staff.playerNotJoinedBefore", playerName);
         }
     }
 }

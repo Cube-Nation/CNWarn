@@ -2,10 +2,10 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
 import de.derflash.plugins.cnwarn.model.Watch;
-import de.derflash.plugins.cnwarn.services.ChatService;
 import de.derflash.plugins.cnwarn.services.WatchService;
 
 public class WatchDeleteCommand {
@@ -40,9 +40,9 @@ public class WatchDeleteCommand {
         if (watchedPlayer != null) {
             watchService.deletePlayerWatch(watchedPlayer);
 
-            chatService.showStaffDelWatchedPlayer(player, watchedPlayer.getPlayername());
+            chatService.one(player, "staff.watchDeleted", watchedPlayer.getPlayername());
         } else {
-            chatService.showStaffPlayerNotWatched(player);
+            chatService.one(player, "staff.playerNotWatched");
         }
     }
 }

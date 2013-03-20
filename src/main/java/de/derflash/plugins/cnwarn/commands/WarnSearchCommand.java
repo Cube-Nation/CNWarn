@@ -2,9 +2,9 @@ package de.derflash.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
-import de.derflash.plugins.cnwarn.services.ChatService;
 import de.derflash.plugins.cnwarn.services.WarnService;
 
 public class WarnSearchCommand {
@@ -21,8 +21,8 @@ public class WarnSearchCommand {
     public void checkWarning(Player player, String[] args) {
         warnService.clearOld();
 
-        if (args.length <= 1 || args[0].length() < 3) {
-            chatService.showStaffSearchWarnCorrect(player);
+        if (args.length < 1 || args[0].length() < 3) {
+            chatService.one(player, "staff.checkWarnNotCorrect");
         } else {
             warnService.showSuggestions(args[0], player);
         }

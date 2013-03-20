@@ -10,6 +10,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.CommandsManager;
 import de.cubenation.plugins.utils.commandapi.ErrorHandler;
 import de.cubenation.plugins.utils.commandapi.exception.CommandException;
@@ -29,37 +30,30 @@ import de.derflash.plugins.cnwarn.commands.WatchListCommand;
 import de.derflash.plugins.cnwarn.eventlistener.PlayerListener;
 import de.derflash.plugins.cnwarn.model.Warn;
 import de.derflash.plugins.cnwarn.model.Watch;
-import de.derflash.plugins.cnwarn.services.ChatService;
 import de.derflash.plugins.cnwarn.services.WarnService;
 import de.derflash.plugins.cnwarn.services.WatchService;
 
 public class CNWarn extends JavaPlugin {
     // framework services
     private PermissionService permissionService;
+    private ChatService chatService;
     private CommandsManager commandsManager;
 
     // local services
-    private ChatService chatService;
     private WarnService warnService;
     private WatchService watchService;
 
-    private CommandsManager commandsManager;
-    
-    public static CNWarn p;
-
     @Override
     public void onEnable() {
-    	CNWarn.p = this;
-    	
         setupDatabase();
 
         permissionService = new PermissionService();
+        chatService = new ChatService(this, permissionService);
 
-        chatService = new ChatService();
         warnService = new WarnService(getDatabase(), chatService);
         watchService = new WatchService(getDatabase());
 
-        getServer().getPluginManager().registerEvents(new PlayerListener(warnService, watchService, permissionService, chatService), this);
+        getServer().getPluginManager().registerEvents(new PlayerListener(warnService, watchService, chatService), this);
 
         try {
             commandsManager = new CommandsManager(this);
