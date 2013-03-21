@@ -9,8 +9,7 @@ version: '${project.version}'
 
 depend:
   - LogBlock
-softdepend:
-  - PermissionsEx
+  - PluginUtils
 
 commands:
   warn:
