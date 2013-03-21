@@ -30,7 +30,7 @@ public class WarnListCommand {
         if (warnService.warnedPlayersContains(playerName)) {
             chatService.one(player, "player.warnHead", playerName);
 
-            SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy 'um' hh:mm 'Uhr'");
+            SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy 'um' HH:mm 'Uhr'");
             int ratingSum = 0;
             for (Warn warn : warnService.getWarnList(playerName)) {
                 Date createDate = warn.getCreated();
@@ -63,7 +63,7 @@ public class WarnListCommand {
         if (warnService.warnedPlayersContains(playerName)) {
             chatService.one(player, "player.warnHead", playerName);
 
-            SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yy 'um' hh:mm 'Uhr'");
+            SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy 'um' HH:mm 'Uhr'");
             int ratingSum = 0;
             for (Warn warn : warnService.getWarnList(playerName)) {
                 Date createDate = warn.getCreated();
