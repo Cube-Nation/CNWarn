@@ -118,4 +118,9 @@ public class CNWarn extends JavaPlugin {
         }
         return true;
     }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return commandsManager.getTabCompleteList(sender, command, alias, args);
+    }
 }
