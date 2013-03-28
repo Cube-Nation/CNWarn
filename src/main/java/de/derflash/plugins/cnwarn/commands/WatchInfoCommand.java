@@ -1,5 +1,8 @@
 package de.derflash.plugins.cnwarn.commands;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.bukkit.entity.Player;
 
 import de.cubenation.plugins.utils.chatapi.ChatService;
@@ -37,8 +40,10 @@ public class WatchInfoCommand {
         }
 
         if (watchedPlayer != null) {
-            chatService.one(player, "staff.warnInfo", watchedPlayer.getPlayername(), watchedPlayer.getStaffname(), watchedPlayer.getCreated(),
-                    watchedPlayer.getMessage());
+            SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy 'um' HH:mm 'Uhr'");
+            Date createDate = watchedPlayer.getCreated();
+            String created = formatter.format(createDate);
+            chatService.one(player, "staff.warnInfo", watchedPlayer.getPlayername(), watchedPlayer.getStaffname(), created, watchedPlayer.getMessage());
         } else {
             chatService.one(player, "staff.playerNotWatched");
         }
