@@ -30,7 +30,7 @@ public class WatchListCommand {
             if (playerList.length() > 0) {
                 playerList.append(", ");
             }
-            playerList.append(watch);
+            playerList.append(watch.getPlayername());
         }
 
         if (playerList.length() > 0) {
