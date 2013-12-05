@@ -43,11 +43,6 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>org.kitteh.vanish</groupId>
-			<artifactId>VanishNoPacket</artifactId>
-			<version>3.14</version>
-		</dependency>
-		<dependency>
 			<groupId>de.cubenation.plugins.utils</groupId>
 			<artifactId>PluginUtils</artifactId>
 			<version>0.1.4-SNAPSHOT</version>
