@@ -11,7 +11,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import com.avaje.ebean.EbeanServer;
-import com.avaje.ebean.SqlRow;
+import com.avaje.ebean.SqlQuery;
 
 import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.derflash.plugins.cnwarn.model.ConfirmOfflineWarnTable;
@@ -25,10 +25,15 @@ public class WarnService {
     private HashMap<Player, ConfirmOfflineWarnTable> offlineWarnings = new HashMap<Player, ConfirmOfflineWarnTable>();
     // Hashset all (!online!) players with not accepted warnings
     private HashSet<Player> notAccepted = new HashSet<Player>();
+    private SqlQuery preparedSqlSumRating;
+    private SqlQuery preparedSqlOfflinePlayer;
 
     public WarnService(EbeanServer dbConnection, ChatService chatService) {
         this.dbConnection = dbConnection;
         this.chatService = chatService;
+
+        preparedSqlSumRating = dbConnection.createSqlQuery("select sum(rating) as sumrating from cn_warns where playername = :playerName limit 1");
+        preparedSqlOfflinePlayer = dbConnection.createSqlQuery("select * from `lb-players` where lower(playername) = lower(:playerName)");
     }
 
     public void clearOld() {
@@ -40,8 +45,8 @@ public class WarnService {
     }
 
     private Integer getRatingSum(String playerName) {
-        return dbConnection.createSqlQuery("select sum(rating) as sumrating from cn_warns where playername = '" + playerName + "' limit 1").findUnique()
-                .getInteger("sumrating");
+        preparedSqlSumRating.setParameter("playerName", playerName);
+        return preparedSqlSumRating.findUnique().getInteger("sumrating");
     }
 
     public void warnPlayer(String warnedPlayer, Player staffMember, String message, Integer rating) {
@@ -149,20 +154,18 @@ public class WarnService {
     public void showSuggestions(String playerName, Player player) {
         chatService.one(player, "staff.searchWarnedPlayers", playerName);
 
-        String query = "select distinct `playername` from cn_warns where `playername` like '%" + playerName + "%' limit 8";
-
-        List<SqlRow> found = dbConnection.createSqlQuery(query).findList();
+        List<Warn> found = dbConnection.find(Warn.class).where().like("playername", "%" + playerName + "%").setMaxRows(8).setDistinct(true).findList();
 
         if (found.isEmpty()) {
             chatService.one(player, "staff.noSearchEntries");
         } else {
             String out = "";
-            for (SqlRow row : found) {
-                String _name = row.getString("playername");
+            for (Warn row : found) {
+                String name = row.getPlayername();
                 if (out.length() == 0) {
-                    out = _name;
+                    out = name;
                 } else {
-                    out = out + ", " + _name;
+                    out = out + ", " + name;
                 }
             }
             chatService.one(player, "staff.searchEntries", out);
@@ -186,6 +189,8 @@ public class WarnService {
     }
 
     public boolean hasPlayedBefore(OfflinePlayer player) {
-        return (dbConnection.createSqlQuery("select * from `lb-players` where lower(playername) = lower('" + player.getName() + "')").findUnique() != null);
+        preparedSqlOfflinePlayer.setParameter("playerName", player.getName());
+
+        return (preparedSqlOfflinePlayer.findUnique() != null);
     }
 }
