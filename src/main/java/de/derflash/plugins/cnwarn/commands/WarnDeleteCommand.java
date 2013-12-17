@@ -27,15 +27,19 @@ public class WarnDeleteCommand {
             return;
         }
 
-        warnService.deleteWarning(id, player);
+        if (warnService.deleteWarning(id, player)) {
+            chatService.one(player, "staff.warnDeleted", id);
+        }
     }
 
     @Command(main = "warn", sub = "delall", min = 1, max = 1, usage = "[Spieler]", help = "Löscht alle Verwarnungen des Spielers")
     @CommandPermissions("cubewarn.admin")
     public void deleteAllWarning(Player player, String playerName) {
-        if (warnService.warnedPlayersContains(playerName)) {
+        if (warnService.hasPlayersWarings(playerName)) {
             // delete all warnings if the player was warned
             warnService.deleteWarnings(playerName, player);
+
+            chatService.one(player, "staff.deleteAllWarn", playerName);
         } else {
             // nothing to delete, player has no warnings
             chatService.one(player, "staff.noDeletedWarn", playerName);

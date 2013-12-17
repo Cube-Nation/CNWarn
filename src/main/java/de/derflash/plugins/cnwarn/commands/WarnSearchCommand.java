@@ -1,5 +1,8 @@
 package de.derflash.plugins.cnwarn.commands;
 
+import java.util.Collection;
+
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 
 import de.cubenation.plugins.utils.chatapi.ChatService;
@@ -16,15 +19,23 @@ public class WarnSearchCommand {
         this.chatService = chatService;
     }
 
-    @Command(main = "warn", sub = { "search", "check" }, max = 1, usage = "[Spieler]", help = "Nach einem Spieler suchen.")
+    @Command(main = "warn", sub = { "search", "check" }, min = 1, max = 1, usage = "[Spieler]", help = "Nach einem Spieler suchen.")
     @CommandPermissions("cubewarn.staff")
-    public void checkWarning(Player player, String[] args) {
+    public void checkWarning(Player player, String playerName) {
         warnService.clearOld();
 
-        if (args.length < 1 || args[0].length() < 3) {
+        if (playerName.length() < 3) {
             chatService.one(player, "staff.checkWarnNotCorrect");
         } else {
-            warnService.showSuggestions(args[0], player);
+            chatService.one(player, "staff.searchWarnedPlayers", playerName);
+
+            Collection<String> found = warnService.searchPlayerWithWarns(playerName);
+
+            if (found.isEmpty()) {
+                chatService.one(player, "staff.noSearchEntries");
+            } else {
+                chatService.one(player, "staff.searchEntries", StringUtils.join(found, ", "));
+            }
         }
     }
 }

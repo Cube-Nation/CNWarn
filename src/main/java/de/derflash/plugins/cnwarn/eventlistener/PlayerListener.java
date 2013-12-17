@@ -29,7 +29,7 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(final PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        if (warnService.hasUnacceptedWarnings(player.getName())) {
+        if (warnService.hasUnacceptedWarnings(player)) {
             warnService.addNotAccepted(player);
             chatService.one(player, "player.warnJoinInfo", player.getName());
         }
@@ -45,9 +45,8 @@ public class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        String playerName = player.getName();
 
-        warnService.removeNotAccepted(playerName.toLowerCase());
+        warnService.removeNotAccepted(player);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

@@ -15,7 +15,6 @@ import com.avaje.ebean.validation.NotNull;
 @Entity()
 @Table(name = "cn_warns")
 public class Warn {
-
     @Id
     private int id;
 

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.derflash.plugins.cnwarn</groupId>
 	<artifactId>CNWarn</artifactId>
-	<version>1.1</version>
+	<version>1.2-SNAPSHOT</version>
 	<name>CNWarn</name>
 	<url>http://www.cube-nation.de/</url>
 	<properties>
@@ -25,6 +25,7 @@
 				<filtering>true</filtering>
 				<includes>
 					<include>CNWarn_messages.properties</include>
+					<include>config.yml</include>
 					<include>plugin.yml</include>
 				</includes>
 			</resource>

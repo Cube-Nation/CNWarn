@@ -1,9 +1,7 @@
 package de.derflash.plugins.cnwarn.commands;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 import org.bukkit.entity.Player;
 
@@ -27,7 +25,7 @@ public class WarnListCommand {
         warnService.clearOld();
 
         String playerName = player.getName();
-        if (warnService.warnedPlayersContains(playerName)) {
+        if (warnService.hasPlayersWarings(playerName)) {
             chatService.one(player, "player.warnHead", playerName);
 
             SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy 'um' HH:mm 'Uhr'");
@@ -41,10 +39,7 @@ public class WarnListCommand {
                         (warn.getAccepted() == null ? "Nein" : "Ja"));
 
                 if (warn.getAccepted() != null) {
-                    GregorianCalendar acceptedDate = new GregorianCalendar();
-                    acceptedDate.setTime(warn.getAccepted());
-                    acceptedDate.add(Calendar.DAY_OF_MONTH, 30);
-                    String accepted = formatter.format(acceptedDate.getTime());
+                    String accepted = formatter.format(warnService.getExpirationDate(warn));
 
                     chatService.one(player, "player.warnEntryAccepted", accepted);
                 }
@@ -60,7 +55,7 @@ public class WarnListCommand {
     public void listWarningAdmin(Player player, String playerName) {
         warnService.clearOld();
 
-        if (warnService.warnedPlayersContains(playerName)) {
+        if (warnService.hasPlayersWarings(playerName)) {
             chatService.one(player, "player.warnHead", playerName);
 
             SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy 'um' HH:mm 'Uhr'");
@@ -74,10 +69,7 @@ public class WarnListCommand {
                         (warn.getAccepted() == null ? "Nein" : "Ja"));
 
                 if (warn.getAccepted() != null) {
-                    GregorianCalendar acceptedDate = new GregorianCalendar();
-                    acceptedDate.setTime(warn.getAccepted());
-                    acceptedDate.add(Calendar.DAY_OF_MONTH, 30);
-                    String accepted = formatter.format(acceptedDate.getTime());
+                    String accepted = formatter.format(warnService.getExpirationDate(warn));
 
                     chatService.one(player, "player.warnEntryAccepted", accepted);
                 }

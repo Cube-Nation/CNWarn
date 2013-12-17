@@ -8,7 +8,6 @@ import de.cubenation.plugins.utils.pluginapi.BasePlugin;
 import de.cubenation.plugins.utils.pluginapi.CommandSet;
 import de.derflash.plugins.cnwarn.commands.WarnAcceptCommand;
 import de.derflash.plugins.cnwarn.commands.WarnAddCommand;
-import de.derflash.plugins.cnwarn.commands.WarnConfirmCommand;
 import de.derflash.plugins.cnwarn.commands.WarnDeleteCommand;
 import de.derflash.plugins.cnwarn.commands.WarnListCommand;
 import de.derflash.plugins.cnwarn.commands.WarnSearchCommand;
@@ -29,8 +28,13 @@ public class CNWarn extends BasePlugin {
 
     @Override
     protected void initialCustomServices() {
-        warnService = new WarnService(getDatabase(), chatService);
+        warnService = new WarnService(getDatabase());
         watchService = new WatchService(getDatabase());
+    }
+
+    @Override
+    protected void startCustomServices() {
+        warnService.setExpirationDays(getConfig().getInt("warn_expiration_days", 30));
     }
 
     @Override
@@ -42,7 +46,6 @@ public class CNWarn extends BasePlugin {
     protected void registerCommands(List<CommandSet> list) {
         list.add(new CommandSet(WarnAcceptCommand.class, warnService, chatService));
         list.add(new CommandSet(WarnAddCommand.class, warnService, chatService));
-        list.add(new CommandSet(WarnConfirmCommand.class, warnService));
         list.add(new CommandSet(WarnDeleteCommand.class, warnService, chatService));
         list.add(new CommandSet(WarnListCommand.class, warnService, chatService));
         list.add(new CommandSet(WarnSearchCommand.class, warnService, chatService));

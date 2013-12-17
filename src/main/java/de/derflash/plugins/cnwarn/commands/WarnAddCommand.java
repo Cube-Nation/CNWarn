@@ -3,6 +3,7 @@ package de.derflash.plugins.cnwarn.commands;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -30,18 +31,17 @@ public class WarnAddCommand {
         String playerName = argList.pollFirst();
         String rate = argList.pollLast();
 
-        String message = "";
+        String message = StringUtils.join(argList, " ");
         Integer rating;
-
-        // get the message
-        for (String word : argList) {
-            message += " " + word;
-        }
-        message = message.trim();
 
         // check if the message is at least 5 chars long
         if (message.length() <= 4) {
             chatService.one(player, "staff.warnDescToShort");
+            return;
+        }
+
+        if (!warnService.hasPlayedBefore(playerName)) {
+            chatService.one(player, "staff.playerNotJoinedBefore", playerName);
             return;
         }
 
@@ -57,18 +57,20 @@ public class WarnAddCommand {
             return;
         }
 
-        // get the warned player object and check if he is online
-        Player warnPlayer = Bukkit.getServer().getPlayer(playerName);
-        if (warnPlayer instanceof Player) {
-            // check if the player tries to warn himself
-            warnService.warnPlayer(warnPlayer.getName(), player, message, rating);
-            chatService.one(warnPlayer, "player.warnJoinInfo", warnPlayer.getName());
+        chatService.one(player, "staff.newWarn", playerName, message, rating.toString());
 
-        } else if (warnService.hasPlayedBefore(Bukkit.getOfflinePlayer(playerName))) {
-            warnService.warnPlayer(Bukkit.getOfflinePlayer(playerName).getName(), player, message, rating);
+        Boolean wasWarned = warnService.hasPlayersWarings(playerName);
+        if (wasWarned) {
+            chatService.one(player, "staff.warnExists", playerName, warnService.getWarnCount(playerName).toString(), warnService.getRatingSum(playerName)
+                    .toString());
+        }
 
-        } else {
-            chatService.one(player, "staff.playerNotJoinedBefore", playerName);
+        warnService.warnPlayer(playerName, player, message, rating);
+
+        // inform play, if online
+        Player onlinePlayer = Bukkit.getPlayer(playerName);
+        if (onlinePlayer != null) {
+            chatService.one(onlinePlayer, "player.warnJoinInfo", playerName);
         }
     }
 }
