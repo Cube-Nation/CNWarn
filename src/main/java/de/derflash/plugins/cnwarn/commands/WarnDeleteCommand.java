@@ -18,16 +18,16 @@ public class WarnDeleteCommand {
 
     @Command(main = "warn", sub = "del", min = 1, max = 1, usage = "[Id]", help = "Löscht eine einzelne Verwarnung")
     @CommandPermissions("cubewarn.admin")
-    public void deleteWarning(Player player, String amount) {
+    public void deleteWarning(Player player, String warnIdStr) {
         Integer id;
         try {
-            id = Integer.parseInt(amount);
+            id = Integer.parseInt(warnIdStr);
         } catch (Exception e) {
             chatService.one(player, "staff.warnDeleteWarnId");
             return;
         }
 
-        if (warnService.deleteWarning(id)) {
+        if (warnService.deleteWarn(id)) {
             chatService.one(player, "staff.warnDeleted", id);
         }
     }
@@ -36,8 +36,10 @@ public class WarnDeleteCommand {
     @CommandPermissions("cubewarn.admin")
     public void deleteAllWarning(Player player, String playerName) {
         if (warnService.isPlayersWarned(playerName)) {
-            // delete all warnings if the player was warned
-            warnService.deleteWarnings(playerName);
+            if (!warnService.deleteWarns(playerName)) {
+                chatService.one(player, "staff.deleteAllWarnFailed", playerName);
+                return;
+            }
 
             chatService.one(player, "staff.deleteAllWarn", playerName);
         } else {

@@ -39,7 +39,7 @@ public class WarnListCommand {
                         (warn.getAccepted() == null ? "Nein" : "Ja"));
 
                 if (warn.getAccepted() != null) {
-                    String accepted = formatter.format(warnService.getExpirationDate(warn));
+                    String accepted = formatter.format(warnService.calculateExpirationDate(warn));
 
                     chatService.one(player, "player.warnEntryAccepted", accepted);
                 }
@@ -69,7 +69,7 @@ public class WarnListCommand {
                         (warn.getAccepted() == null ? "Nein" : "Ja"));
 
                 if (warn.getAccepted() != null) {
-                    String accepted = formatter.format(warnService.getExpirationDate(warn));
+                    String accepted = formatter.format(warnService.calculateExpirationDate(warn));
 
                     chatService.one(player, "player.warnEntryAccepted", accepted);
                 }

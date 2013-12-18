@@ -1,5 +1,6 @@
 package de.derflash.plugins.cnwarn.services;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -7,108 +8,177 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.persistence.OptimisticLockException;
 
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlQuery;
+import com.avaje.ebean.SqlUpdate;
 
 import de.cubenation.plugins.utils.ArrayConvert;
 import de.cubenation.plugins.utils.BukkitUtils;
 import de.derflash.plugins.cnwarn.model.Warn;
 
 public class WarnService {
-    private int expirationDays = 30;
-    private EbeanServer dbConnection;
+    // external services
+    private final EbeanServer dbConnection;
+    private final Logger logger;
 
     // Hashset all (!online!) players with not accepted warnings
-    private HashSet<String> notAcceptedWarnedPlayersCache = new HashSet<String>();
+    private final HashSet<String> notAcceptedWarnedPlayersCache = new HashSet<String>();
 
-    private SqlQuery preparedSqlSumRating;
-    private SqlQuery preparedSqlOfflinePlayer;
+    private int expirationDays = 30;
 
-    public WarnService(EbeanServer dbConnection) {
+    private final SqlQuery preparedSqlSumRating;
+    private final SqlQuery preparedSqlOfflinePlayer;
+    private final SqlUpdate preparedSqlCleanWarns;
+
+    public WarnService(EbeanServer dbConnection, Logger logger) {
         this.dbConnection = dbConnection;
+        this.logger = logger;
 
         preparedSqlSumRating = dbConnection
                 .createSqlQuery("select sum(rating) as sumrating from cn_warns where lower(playername) = lower(:playerName) limit 1");
         preparedSqlOfflinePlayer = dbConnection.createSqlQuery("select * from `lb-players` where lower(playername) = lower(:playerName)");
+        preparedSqlCleanWarns = dbConnection.createSqlUpdate("update `cn_warns` set rating = 0 where to_days(now()) - to_days(`accepted`) > :expirationDays");
     }
 
-    public void clearOld() {
-        dbConnection.createSqlUpdate("update `cn_warns` set rating = 0 where to_days(now()) - to_days(`accepted`) > " + Integer.toString(expirationDays))
-                .execute();
+    public final void clearOld() {
+        preparedSqlCleanWarns.setParameter("expirationDays", expirationDays);
+        preparedSqlCleanWarns.execute();
     }
 
-    public Integer getWarnCount(String playerName) {
+    public final Integer getWarnCount(String playerName) {
         return dbConnection.find(Warn.class).where().ieq("playername", playerName).findRowCount();
     }
 
-    public Integer getRatingSum(String playerName) {
+    public final Integer getRatingSum(String playerName) {
         preparedSqlSumRating.setParameter("playerName", playerName);
 
         return preparedSqlSumRating.findUnique().getInteger("sumrating");
     }
 
-    public void warnPlayer(String warnedPlayer, String staffMemberName, String message, Integer rating) {
+    public final boolean warnPlayer(String warnedPlayer, String staffMemberName, String message, Integer rating) {
+        if (warnedPlayer == null || staffMemberName == null || warnedPlayer.isEmpty() || staffMemberName.isEmpty()) {
+            return false;
+        }
+
         Warn newWarn = new Warn();
         newWarn.setPlayername(warnedPlayer);
         newWarn.setStaffname(staffMemberName);
         newWarn.setMessage(message);
         newWarn.setRating(rating);
         newWarn.setCreated(new Date());
-        dbConnection.save(newWarn);
+
+        try {
+            dbConnection.save(newWarn);
+        } catch (OptimisticLockException e) {
+            logger.log(Level.SEVERE, "error on save data", e);
+            return false;
+        }
 
         if (BukkitUtils.isPlayerOnline(warnedPlayer)) {
             notAcceptedWarnedPlayersCache.add(warnedPlayer.toLowerCase());
         }
+
+        return true;
     }
 
-    public boolean deleteWarning(Integer id) {
-        String playerName = getPlayerNameFromId(id);
-        if (playerName != null) {
-            dbConnection.delete(Warn.class, id);
-
-            notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private String getPlayerNameFromId(Integer id) {
+    public final boolean deleteWarn(Integer id) {
         Warn warn = dbConnection.find(Warn.class, id);
-        if (warn != null) {
-            return warn.getPlayername();
+        if (warn == null) {
+            return false;
         }
-        return null;
+
+        try {
+            dbConnection.delete(warn);
+        } catch (OptimisticLockException e) {
+            logger.log(Level.SEVERE, "error on delete", e);
+            return false;
+        }
+
+        notAcceptedWarnedPlayersCache.remove(warn.getPlayername().toLowerCase());
+
+        return true;
     }
 
-    public void deleteWarnings(String playerName) {
+    public final boolean deleteWarns(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return false;
+        }
+
         Set<Warn> warns = dbConnection.find(Warn.class).where().ieq("playername", playerName).findSet();
-        dbConnection.delete(warns);
+        if (warns.size() == 0) {
+            return false;
+        }
+
+        try {
+            int deletedRows = dbConnection.delete(warns);
+            if (deletedRows == 0) {
+                return false;
+            }
+        } catch (OptimisticLockException e) {
+            logger.log(Level.SEVERE, "error on delete data", e);
+            return false;
+        }
 
         notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
+
+        return true;
     }
 
-    public void acceptWarnings(String playerName) {
+    public final boolean acceptWarns(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return false;
+        }
+
         Set<Warn> unAccWarns = dbConnection.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findSet();
+        if (unAccWarns.size() == 0) {
+            return false;
+        }
+
         for (Warn warn : unAccWarns) {
             warn.setAccepted(new Date());
         }
-        dbConnection.save(unAccWarns);
+
+        try {
+            int savedRows = dbConnection.save(unAccWarns);
+            if (savedRows == 0) {
+                return false;
+            }
+        } catch (OptimisticLockException e) {
+            logger.log(Level.SEVERE, "error on save data", e);
+            return false;
+        }
 
         notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
+
+        return true;
     }
 
-    public boolean hasPlayerNotAcceptedWarns(String playerName) {
+    public final boolean hasPlayerNotAcceptedWarns(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return false;
+        }
+
         return dbConnection.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findRowCount() > 0;
     }
 
-    public boolean isPlayersWarned(String playerName) {
+    public final boolean isPlayersWarned(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return false;
+        }
+
         return dbConnection.find(Warn.class).where().ieq("playername", playerName).findRowCount() > 0;
     }
 
-    public Collection<String> searchPlayerWithWarns(String playerName) {
+    public final Collection<String> searchPlayerWithWarns(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return new ArrayList<String>();
+        }
+
         List<Warn> found = dbConnection.find(Warn.class).where().like("playername", "%" + playerName + "%").setMaxRows(8).setDistinct(true).findList();
 
         ArrayConvert<Warn> wc = new ArrayConvert<Warn>() {
@@ -121,25 +191,56 @@ public class WarnService {
         return wc.toCollection(found);
     }
 
-    public List<Warn> getWarnList(String playerName) {
+    public final List<Warn> getWarnList(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return new ArrayList<Warn>();
+        }
+
         return dbConnection.find(Warn.class).where().like("playername", "%" + playerName + "%").findList();
     }
 
-    public void cacheNotAcceptedWarns(String playerName) {
+    public final void cacheNotAcceptedWarns(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return;
+        }
+
         if (BukkitUtils.isPlayerOnline(playerName)) {
             notAcceptedWarnedPlayersCache.add(playerName.toLowerCase());
         }
     }
 
-    public void removeCachedNotAcceptedWarns(String playerName) {
+    public final void removeCachedNotAcceptedWarns(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return;
+        }
+
         notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
     }
 
-    public boolean hasPlayerNotAcceptedWarnsCached(String playerName) {
+    public final boolean hasPlayerNotAcceptedWarnsCached(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return false;
+        }
+
         return notAcceptedWarnedPlayersCache.contains(playerName.toLowerCase());
     }
 
-    public boolean hasPlayedBefore(String playerName) {
+    /**
+     * Checks if the player was sometime before joined the server. Detailed it
+     * will checked the LogBlock-player table for that, on the same database
+     * connection.
+     * 
+     * @param playerName
+     * @return True, if the player had was online before, otherwise false. If
+     *         the playerName is null or empty false will be returned.
+     * 
+     * @since 1.1
+     */
+    public final boolean hasPlayedBefore(String playerName) {
+        if (playerName == null || playerName.isEmpty()) {
+            return false;
+        }
+
         preparedSqlOfflinePlayer.setParameter("playerName", playerName);
 
         return (preparedSqlOfflinePlayer.findUnique() != null);
@@ -153,7 +254,7 @@ public class WarnService {
      * 
      * @since 1.2
      */
-    public Date getExpirationDate(Warn warn) {
+    public final Date calculateExpirationDate(Warn warn) {
         if (warn == null || warn.getAccepted() == null) {
             return null;
         }
@@ -172,7 +273,7 @@ public class WarnService {
      * 
      * @since 1.2
      */
-    public int getExpirationDays() {
+    public final int getExpirationDays() {
         return expirationDays;
     }
 
@@ -181,14 +282,17 @@ public class WarnService {
      * 
      * @param expirationDays
      *            Must be greater than 0 otherwise, statment will ignored.
+     * @return False, if the expirationDays smaller than 0, otherwise true
      * 
      * @since 1.2
      */
-    public void setExpirationDays(int expirationDays) {
+    public final boolean setExpirationDays(int expirationDays) {
         if (expirationDays < 0) {
-            return;
+            return false;
         }
 
         this.expirationDays = expirationDays;
+
+        return true;
     }
 }

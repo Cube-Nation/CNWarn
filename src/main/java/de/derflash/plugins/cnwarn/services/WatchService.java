@@ -8,18 +8,19 @@ import com.avaje.ebean.EbeanServer;
 import de.derflash.plugins.cnwarn.model.Watch;
 
 public class WatchService {
-    private EbeanServer dbConnection;
+    // external services
+    private final EbeanServer dbConnection;
 
     public WatchService(EbeanServer dbConnection) {
         this.dbConnection = dbConnection;
     }
 
-    public boolean isPlayerInWatchList(String playerName) {
+    public final boolean isPlayerInWatchList(String playerName) {
         Watch watchedPlayer = dbConnection.find(Watch.class).setMaxRows(1).where().ieq("playerName", playerName).findUnique();
         return !(watchedPlayer == null);
     }
 
-    public void addWatch(String playerName, String description, String staffName) {
+    public final void addWatch(String playerName, String description, String staffName) {
         Watch watch = new Watch();
         watch.setPlayername(playerName);
         watch.setMessage(description);
@@ -28,15 +29,15 @@ public class WatchService {
         dbConnection.save(watch);
     }
 
-    public Watch getWatchedPlayerById(int id) {
+    public final Watch getWatchedPlayerById(int id) {
         return dbConnection.find(Watch.class).setMaxRows(1).where().eq("id", id).findUnique();
     }
 
-    public Watch getWatchedPlayerByName(String playerName) {
+    public final Watch getWatchedPlayerByName(String playerName) {
         return dbConnection.find(Watch.class).setMaxRows(1).where().ieq("playerName", playerName).findUnique();
     }
 
-    public void deletePlayerWatch(Watch watch) {
+    public final void deletePlayerWatch(Watch watch) {
         dbConnection.delete(watch);
     }
 

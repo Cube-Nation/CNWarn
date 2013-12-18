@@ -28,7 +28,7 @@ public class CNWarn extends BasePlugin {
 
     @Override
     protected void initialCustomServices() {
-        warnService = new WarnService(getDatabase());
+        warnService = new WarnService(getDatabase(), getLogger());
         watchService = new WatchService(getDatabase());
     }
 
@@ -59,5 +59,27 @@ public class CNWarn extends BasePlugin {
     protected void registerDatabaseModel(List<Class<?>> list) {
         list.add(Warn.class);
         list.add(Watch.class);
+    }
+
+    /**
+     * Return the plugin local used service for warn issues.
+     * 
+     * @return
+     * 
+     * @since 1.2
+     */
+    public final WarnService getWarnService() {
+        return warnService;
+    }
+
+    /**
+     * Return the plugin local used service for player watch notes.
+     * 
+     * @return
+     * 
+     * @since 1.2
+     */
+    public final WatchService getWatchService() {
+        return watchService;
     }
 }

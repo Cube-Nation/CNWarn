@@ -24,7 +24,7 @@ public class WarnAcceptCommand {
         String playerName = player.getName();
         if (warnService.isPlayersWarned(playerName)) {
             if (warnService.hasPlayerNotAcceptedWarns(playerName)) {
-                warnService.acceptWarnings(playerName);
+                warnService.acceptWarns(playerName);
 
                 chatService.one(player, "player.warnHead", playerName);
 
@@ -39,7 +39,7 @@ public class WarnAcceptCommand {
                             (warn.getAccepted() == null ? "Nein" : "Ja"));
 
                     if (warn.getAccepted() != null) {
-                        String accepted = formatter.format(warnService.getExpirationDate(warn));
+                        String accepted = formatter.format(warnService.calculateExpirationDate(warn));
 
                         chatService.one(player, "player.warnEntryAccepted", accepted);
                     }

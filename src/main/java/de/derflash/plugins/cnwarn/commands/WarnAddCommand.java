@@ -57,15 +57,24 @@ public class WarnAddCommand {
             return;
         }
 
-        chatService.one(player, "staff.newWarn", playerName, message, rating.toString());
-
         Boolean wasWarned = warnService.isPlayersWarned(playerName);
+        String existsWarnCount = "0";
+        String existsWarnRatingSum = "0";
         if (wasWarned) {
-            chatService.one(player, "staff.warnExists", playerName, warnService.getWarnCount(playerName).toString(), warnService.getRatingSum(playerName)
-                    .toString());
+            existsWarnCount = warnService.getWarnCount(playerName).toString();
+            existsWarnRatingSum = warnService.getRatingSum(playerName).toString();
         }
 
-        warnService.warnPlayer(playerName, player.getName(), message, rating);
+        if (!warnService.warnPlayer(playerName, player.getName(), message, rating)) {
+            chatService.one(player, "staff.newWarnFailed");
+            return;
+        }
+
+        chatService.one(player, "staff.newWarn", playerName, message, rating.toString());
+
+        if (wasWarned) {
+            chatService.one(player, "staff.warnExists", playerName, existsWarnCount, existsWarnRatingSum);
+        }
 
         // inform play, if online
         Player onlinePlayer = Bukkit.getPlayer(playerName);
