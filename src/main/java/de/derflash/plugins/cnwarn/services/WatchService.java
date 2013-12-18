@@ -28,10 +28,10 @@ public class WatchService {
         }
 
         Watch watch = new Watch();
-        watch.setPlayername(playerName);
+        watch.setPlayerName(playerName);
         watch.setMessage(description);
         watch.setCreated(new Date());
-        watch.setStaffname(staffName);
+        watch.setStaffName(staffName);
 
         try {
             dbConnection.save(watch);
@@ -43,7 +43,7 @@ public class WatchService {
     }
 
     public final Watch getWatchedPlayerById(int id) {
-        return dbConnection.find(Watch.class).setMaxRows(1).where().eq("id", id).findUnique();
+        return dbConnection.find(Watch.class).setMaxRows(1).where().idEq(id).findUnique();
     }
 
     public final Watch getWatchedPlayerByName(String playerName) {

@@ -26,7 +26,7 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerJoin(final PlayerJoinEvent event) {
+    public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
         if (warnService.hasPlayerNotAcceptedWarns(player.getName())) {
@@ -38,7 +38,7 @@ public class PlayerListener implements Listener {
         if (watchedPlayer != null) {
 
             // inform admins
-            chatService.allPerm("staff.watchJoinInfo", "cnwarn.watch", watchedPlayer.getPlayername(), watchedPlayer.getCreated(), watchedPlayer.getMessage());
+            chatService.allPerm("staff.watchJoinInfo", "cnwarn.watch", watchedPlayer.getPlayerName(), watchedPlayer.getCreated(), watchedPlayer.getMessage());
         }
     }
 

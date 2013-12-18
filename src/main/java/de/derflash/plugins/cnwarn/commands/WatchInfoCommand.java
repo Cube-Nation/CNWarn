@@ -43,7 +43,7 @@ public class WatchInfoCommand {
             SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy 'um' HH:mm 'Uhr'");
             Date createDate = watchedPlayer.getCreated();
             String created = formatter.format(createDate);
-            chatService.one(player, "staff.warnInfo", watchedPlayer.getPlayername(), watchedPlayer.getStaffname(), created, watchedPlayer.getMessage());
+            chatService.one(player, "staff.warnInfo", watchedPlayer.getPlayerName(), watchedPlayer.getStaffName(), created, watchedPlayer.getMessage());
         } else {
             chatService.one(player, "staff.playerNotWatched");
         }

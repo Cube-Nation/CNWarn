@@ -66,7 +66,7 @@ public class WarnService {
         }
 
         Warn newWarn = new Warn();
-        newWarn.setPlayername(warnedPlayer);
+        newWarn.setPlayerName(warnedPlayer);
         newWarn.setStaffname(staffMemberName);
         newWarn.setMessage(message);
         newWarn.setRating(rating);
@@ -99,7 +99,7 @@ public class WarnService {
             return false;
         }
 
-        notAcceptedWarnedPlayersCache.remove(warn.getPlayername().toLowerCase());
+        notAcceptedWarnedPlayersCache.remove(warn.getPlayerName().toLowerCase());
 
         return true;
     }
@@ -184,7 +184,7 @@ public class WarnService {
         ArrayConvert<Warn> wc = new ArrayConvert<Warn>() {
             @Override
             protected String convertToString(Warn obj) {
-                return obj.getPlayername();
+                return obj.getPlayerName();
             }
         };
 

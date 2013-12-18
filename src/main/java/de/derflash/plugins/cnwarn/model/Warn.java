@@ -12,17 +12,17 @@ import org.bukkit.entity.Player;
 
 import com.avaje.ebean.validation.NotNull;
 
-@Entity()
+@Entity
 @Table(name = "cn_warns")
 public class Warn {
     @Id
     private int id;
 
-    @NotNull
-    private String playername;
+    @Column(name = "playername", nullable = false)
+    private String playerName;
 
-    @NotNull
-    private String staffname;
+    @Column(name = "staffname", nullable = false)
+    private String staffName;
 
     @Column
     private String message;
@@ -44,28 +44,28 @@ public class Warn {
         return id;
     }
 
-    public String getPlayername() {
-        return playername;
+    public String getPlayerName() {
+        return playerName;
     }
 
-    public void setPlayername(String ply) {
-        this.playername = ply;
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
     }
 
     public Player getPlayer() {
-        return Bukkit.getServer().getPlayer(playername);
+        return Bukkit.getServer().getPlayer(playerName);
     }
 
     public void setPlayer(Player player) {
-        this.playername = player.getName();
+        this.playerName = player.getName();
     }
 
-    public String getStaffname() {
-        return staffname;
+    public String getStaffName() {
+        return staffName;
     }
 
-    public void setStaffname(String staffname) {
-        this.staffname = staffname;
+    public void setStaffname(String staffName) {
+        this.staffName = staffName;
     }
 
     public int getRating() {

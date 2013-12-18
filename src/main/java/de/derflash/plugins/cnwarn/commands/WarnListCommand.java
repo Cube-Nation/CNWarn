@@ -35,7 +35,7 @@ public class WarnListCommand {
                 String created = formatter.format(createDate);
                 ratingSum += warn.getRating();
 
-                chatService.one(player, "player.warnEntry", warn.getId(), warn.getMessage(), warn.getRating(), created, warn.getStaffname(),
+                chatService.one(player, "player.warnEntry", warn.getId(), warn.getMessage(), warn.getRating(), created, warn.getStaffName(),
                         (warn.getAccepted() == null ? "Nein" : "Ja"));
 
                 if (warn.getAccepted() != null) {
@@ -65,7 +65,7 @@ public class WarnListCommand {
                 String created = formatter.format(createDate);
                 ratingSum += warn.getRating();
 
-                chatService.one(player, "player.warnEntry", warn.getId(), warn.getMessage(), warn.getRating(), created, warn.getStaffname(),
+                chatService.one(player, "player.warnEntry", warn.getId(), warn.getMessage(), warn.getRating(), created, warn.getStaffName(),
                         (warn.getAccepted() == null ? "Nein" : "Ja"));
 
                 if (warn.getAccepted() != null) {
