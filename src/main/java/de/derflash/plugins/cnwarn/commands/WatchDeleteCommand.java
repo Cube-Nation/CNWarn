@@ -38,7 +38,10 @@ public class WatchDeleteCommand {
         }
 
         if (watchedPlayer != null) {
-            watchService.deletePlayerWatch(watchedPlayer);
+            if (!watchService.deletePlayerWatch(watchedPlayer)) {
+                chatService.one(player, "staff.watchDeletedFailed", watchedPlayer.getPlayername());
+                return;
+            }
 
             chatService.one(player, "staff.watchDeleted", watchedPlayer.getPlayername());
         } else {

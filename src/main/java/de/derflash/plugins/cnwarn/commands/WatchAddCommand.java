@@ -28,7 +28,10 @@ public class WatchAddCommand {
             }
             description = description.trim();
 
-            watchService.addWatch(playerName, description, player.getName());
+            if (!watchService.addWatch(playerName, description, player.getName())) {
+                chatService.one(player, "staff.watchAddedFailed", playerName);
+                return;
+            }
             chatService.one(player, "staff.watchAdded", playerName);
         } else {
             chatService.one(player, "staff.watchAlready", playerName);
