@@ -8,13 +8,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlQuery;
 
 import de.cubenation.plugins.utils.ArrayConvert;
+import de.cubenation.plugins.utils.BukkitUtils;
 import de.derflash.plugins.cnwarn.model.Warn;
 
 public class WarnService {
@@ -22,7 +20,7 @@ public class WarnService {
     private EbeanServer dbConnection;
 
     // Hashset all (!online!) players with not accepted warnings
-    private HashSet<Player> notAccepted = new HashSet<Player>();
+    private HashSet<String> notAcceptedWarnedPlayersCache = new HashSet<String>();
 
     private SqlQuery preparedSqlSumRating;
     private SqlQuery preparedSqlOfflinePlayer;
@@ -30,12 +28,14 @@ public class WarnService {
     public WarnService(EbeanServer dbConnection) {
         this.dbConnection = dbConnection;
 
-        preparedSqlSumRating = dbConnection.createSqlQuery("select sum(rating) as sumrating from cn_warns where lower(playername) = lower(:playerName) limit 1");
+        preparedSqlSumRating = dbConnection
+                .createSqlQuery("select sum(rating) as sumrating from cn_warns where lower(playername) = lower(:playerName) limit 1");
         preparedSqlOfflinePlayer = dbConnection.createSqlQuery("select * from `lb-players` where lower(playername) = lower(:playerName)");
     }
 
     public void clearOld() {
-        dbConnection.createSqlUpdate("update `cn_warns` set rating = 0 where to_days(now()) - to_days(`accepted`) > " + expirationDays).execute();
+        dbConnection.createSqlUpdate("update `cn_warns` set rating = 0 where to_days(now()) - to_days(`accepted`) > " + Integer.toString(expirationDays))
+                .execute();
     }
 
     public Integer getWarnCount(String playerName) {
@@ -48,31 +48,26 @@ public class WarnService {
         return preparedSqlSumRating.findUnique().getInteger("sumrating");
     }
 
-    public void warnPlayer(String warnedPlayer, Player staffMember, String message, Integer rating) {
+    public void warnPlayer(String warnedPlayer, String staffMemberName, String message, Integer rating) {
         Warn newWarn = new Warn();
         newWarn.setPlayername(warnedPlayer);
-        newWarn.setStaffname(staffMember.getName());
+        newWarn.setStaffname(staffMemberName);
         newWarn.setMessage(message);
         newWarn.setRating(rating);
         newWarn.setCreated(new Date());
         dbConnection.save(newWarn);
 
-        // if player is online
-        Player player = Bukkit.getServer().getPlayer(warnedPlayer);
-        if (player != null) {
-            notAccepted.add(player);
+        if (BukkitUtils.isPlayerOnline(warnedPlayer)) {
+            notAcceptedWarnedPlayersCache.add(warnedPlayer.toLowerCase());
         }
     }
 
-    public boolean deleteWarning(Integer id, Player staffplayer) {
+    public boolean deleteWarning(Integer id) {
         String playerName = getPlayerNameFromId(id);
         if (playerName != null) {
             dbConnection.delete(Warn.class, id);
 
-            Player onlinePlayer = Bukkit.getServer().getPlayer(playerName);
-            if (onlinePlayer != null) {
-                notAccepted.remove(onlinePlayer);
-            }
+            notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
 
             return true;
         }
@@ -88,39 +83,28 @@ public class WarnService {
         return null;
     }
 
-    public void deleteWarnings(String playerName, Player staffplayer) {
+    public void deleteWarnings(String playerName) {
         Set<Warn> warns = dbConnection.find(Warn.class).where().ieq("playername", playerName).findSet();
         dbConnection.delete(warns);
 
-        Player onlinePlayer = Bukkit.getServer().getPlayer(playerName);
-        if (onlinePlayer != null) {
-            notAccepted.remove(onlinePlayer);
-        }
+        notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
     }
 
-    public void acceptWarnings(Player player) {
-        if (player == null) {
-            return;
-        }
-
-        Set<Warn> unAccWarns = dbConnection.find(Warn.class).where().ieq("playername", player.getName()).isNull("accepted").findSet();
+    public void acceptWarnings(String playerName) {
+        Set<Warn> unAccWarns = dbConnection.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findSet();
         for (Warn warn : unAccWarns) {
             warn.setAccepted(new Date());
         }
         dbConnection.save(unAccWarns);
 
-        notAccepted.remove(player);
+        notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
     }
 
-    public boolean hasUnacceptedWarnings(Player player) {
-        if (player == null) {
-            return false;
-        }
-
-        return dbConnection.find(Warn.class).where().ieq("playername", player.getName()).isNull("accepted").findRowCount() > 0;
+    public boolean hasPlayerNotAcceptedWarns(String playerName) {
+        return dbConnection.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findRowCount() > 0;
     }
 
-    public boolean hasPlayersWarings(String playerName) {
+    public boolean isPlayersWarned(String playerName) {
         return dbConnection.find(Warn.class).where().ieq("playername", playerName).findRowCount() > 0;
     }
 
@@ -141,24 +125,18 @@ public class WarnService {
         return dbConnection.find(Warn.class).where().like("playername", "%" + playerName + "%").findList();
     }
 
-    public void addNotAccepted(Player player) {
-        if (player != null) {
-            notAccepted.add(player);
+    public void cacheNotAcceptedWarns(String playerName) {
+        if (BukkitUtils.isPlayerOnline(playerName)) {
+            notAcceptedWarnedPlayersCache.add(playerName.toLowerCase());
         }
     }
 
-    public void removeNotAccepted(Player player) {
-        if (player != null) {
-            notAccepted.remove(player);
-        }
+    public void removeCachedNotAcceptedWarns(String playerName) {
+        notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
     }
 
-    public boolean containsNotAccepted(Player player) {
-        if (player == null) {
-            return false;
-        }
-
-        return notAccepted.contains(player);
+    public boolean hasPlayerNotAcceptedWarnsCached(String playerName) {
+        return notAcceptedWarnedPlayersCache.contains(playerName.toLowerCase());
     }
 
     public boolean hasPlayedBefore(String playerName) {

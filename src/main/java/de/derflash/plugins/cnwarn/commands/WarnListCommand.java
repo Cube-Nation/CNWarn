@@ -25,7 +25,7 @@ public class WarnListCommand {
         warnService.clearOld();
 
         String playerName = player.getName();
-        if (warnService.hasPlayersWarings(playerName)) {
+        if (warnService.isPlayersWarned(playerName)) {
             chatService.one(player, "player.warnHead", playerName);
 
             SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy 'um' HH:mm 'Uhr'");
@@ -55,7 +55,7 @@ public class WarnListCommand {
     public void listWarningAdmin(Player player, String playerName) {
         warnService.clearOld();
 
-        if (warnService.hasPlayersWarings(playerName)) {
+        if (warnService.isPlayersWarned(playerName)) {
             chatService.one(player, "player.warnHead", playerName);
 
             SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy 'um' HH:mm 'Uhr'");

@@ -29,8 +29,8 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(final PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        if (warnService.hasUnacceptedWarnings(player)) {
-            warnService.addNotAccepted(player);
+        if (warnService.hasPlayerNotAcceptedWarns(player.getName())) {
+            warnService.cacheNotAcceptedWarns(player.getName());
             chatService.one(player, "player.warnJoinInfo", player.getName());
         }
 
@@ -46,35 +46,31 @@ public class PlayerListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
-        warnService.removeNotAccepted(player);
+        warnService.removeCachedNotAcceptedWarns(player.getName());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (warnService.containsNotAccepted(player)) {
+        if (warnService.hasPlayerNotAcceptedWarnsCached(player.getName())) {
+            // player moves back to originally position by bukkit
             event.setCancelled(true);
-            if (event.isCancelled()) {
-                player.teleport(event.getFrom());
-            }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerTeleport(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (warnService.containsNotAccepted(player)) {
+        if (warnService.hasPlayerNotAcceptedWarnsCached(player.getName())) {
+            // player moves back to originally position by bukkit
             event.setCancelled(true);
-            if (event.isCancelled()) {
-                player.teleport(event.getFrom());
-            }
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
-        final Player player = event.getPlayer();
-        if (warnService.containsNotAccepted(player)) {
+        Player player = event.getPlayer();
+        if (warnService.hasPlayerNotAcceptedWarnsCached(player.getName())) {
             chatService.one(player, "player.warnJoinInfo", player.getName());
         }
     }

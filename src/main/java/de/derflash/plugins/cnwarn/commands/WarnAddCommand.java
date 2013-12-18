@@ -59,13 +59,13 @@ public class WarnAddCommand {
 
         chatService.one(player, "staff.newWarn", playerName, message, rating.toString());
 
-        Boolean wasWarned = warnService.hasPlayersWarings(playerName);
+        Boolean wasWarned = warnService.isPlayersWarned(playerName);
         if (wasWarned) {
             chatService.one(player, "staff.warnExists", playerName, warnService.getWarnCount(playerName).toString(), warnService.getRatingSum(playerName)
                     .toString());
         }
 
-        warnService.warnPlayer(playerName, player, message, rating);
+        warnService.warnPlayer(playerName, player.getName(), message, rating);
 
         // inform play, if online
         Player onlinePlayer = Bukkit.getPlayer(playerName);

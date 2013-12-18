@@ -22,9 +22,9 @@ public class WarnAcceptCommand {
     @Command(main = "warn", sub = "accept", max = 0, help = "Damit aktzeptierst du eine Verwarnung.")
     public void acceptWarning(Player player) {
         String playerName = player.getName();
-        if (warnService.hasPlayersWarings(playerName)) {
-            if (warnService.hasUnacceptedWarnings(player)) {
-                warnService.acceptWarnings(player);
+        if (warnService.isPlayersWarned(playerName)) {
+            if (warnService.hasPlayerNotAcceptedWarns(playerName)) {
+                warnService.acceptWarnings(playerName);
 
                 chatService.one(player, "player.warnHead", playerName);
 
