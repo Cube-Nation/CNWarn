@@ -21,7 +21,7 @@ import de.derflash.plugins.cnwarn.model.Watch;
 import de.derflash.plugins.cnwarn.services.WarnService;
 import de.derflash.plugins.cnwarn.services.WatchService;
 
-public class CNWarn extends BasePlugin {
+public class CnWarn extends BasePlugin {
     // local services
     private WarnService warnService;
     private WatchService watchService;
@@ -29,7 +29,7 @@ public class CNWarn extends BasePlugin {
     @Override
     protected void initialCustomServices() {
         warnService = new WarnService(getDatabase(), getLogger());
-        watchService = new WatchService(getDatabase());
+        watchService = new WatchService(getDatabase(), getLogger());
     }
 
     @Override

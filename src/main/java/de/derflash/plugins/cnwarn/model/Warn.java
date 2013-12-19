@@ -64,7 +64,7 @@ public class Warn {
         return staffName;
     }
 
-    public void setStaffname(String staffName) {
+    public void setStaffName(String staffName) {
         this.staffName = staffName;
     }
 

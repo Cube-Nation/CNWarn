@@ -12,15 +12,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.persistence.OptimisticLockException;
+import javax.persistence.PersistenceException;
 
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlQuery;
-import com.avaje.ebean.SqlUpdate;
+import com.avaje.ebean.SqlRow;
 
 import de.cubenation.plugins.utils.ArrayConvert;
 import de.cubenation.plugins.utils.BukkitUtils;
 import de.derflash.plugins.cnwarn.model.Warn;
 
+/**
+ * With this service, player warnings can be managed. Players warnings have a
+ * expiration time that is configurable, default 30 days.
+ * 
+ * @since 1.1
+ */
 public class WarnService {
     // external services
     private final EbeanServer dbConnection;
@@ -32,42 +39,90 @@ public class WarnService {
     private int expirationDays = 30;
 
     private final SqlQuery preparedSqlSumRating;
+    private final SqlQuery preparedSqlSearchWarnedPlayer;
     private final SqlQuery preparedSqlOfflinePlayer;
-    private final SqlUpdate preparedSqlCleanWarns;
 
+    /**
+     * 
+     * @param dbConnection
+     * @param logger
+     * 
+     * @since 1.1
+     */
     public WarnService(EbeanServer dbConnection, Logger logger) {
         this.dbConnection = dbConnection;
         this.logger = logger;
 
         preparedSqlSumRating = dbConnection
-                .createSqlQuery("select sum(rating) as sumrating from cn_warns where lower(playername) = lower(:playerName) limit 1");
-        preparedSqlOfflinePlayer = dbConnection.createSqlQuery("select * from `lb-players` where lower(playername) = lower(:playerName)");
-        preparedSqlCleanWarns = dbConnection.createSqlUpdate("update `cn_warns` set rating = 0 where to_days(now()) - to_days(`accepted`) > :expirationDays");
+                .createSqlQuery("select sum(`rating`) as sumrating from `cn_warns` where lower(`playername`) = lower(:playerName) limit 1");
+        preparedSqlSearchWarnedPlayer = dbConnection
+                .createSqlQuery("select distinct `playername` as playername from `cn_warns` where `playername` like :playerName order by `playername` limit 8");
+        preparedSqlOfflinePlayer = dbConnection.createSqlQuery("select * from `lb-players` where lower(`playername`) = lower(:playerName)");
     }
 
-    public final void clearOld() {
-        preparedSqlCleanWarns.setParameter("expirationDays", expirationDays);
-        preparedSqlCleanWarns.execute();
+    /**
+     * Set for expired warns rating value to zero.
+     * 
+     * @since 1.1
+     */
+    public final void clearExpired() {
+        Calendar cal = new GregorianCalendar();
+        cal.clear(Calendar.HOUR_OF_DAY);
+        cal.clear(Calendar.MINUTE);
+        cal.clear(Calendar.SECOND);
+        cal.clear(Calendar.MILLISECOND);
+        cal.add(Calendar.DAY_OF_MONTH, -expirationDays);
+
+        List<Warn> findList = dbConnection.find(Warn.class).where().gt("rating", 0).lt("accepted", cal.getTime()).findList();
+        for (Warn find : findList) {
+            find.setRating(0);
+        }
+        dbConnection.save(findList);
     }
 
-    public final Integer getWarnCount(String playerName) {
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since 1.1
+     */
+    public final int getWarnCount(String playerName) {
         return dbConnection.find(Warn.class).where().ieq("playername", playerName).findRowCount();
     }
 
-    public final Integer getRatingSum(String playerName) {
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since 1.1
+     */
+    public final int getRatingSum(String playerName) {
         preparedSqlSumRating.setParameter("playerName", playerName);
 
-        return preparedSqlSumRating.findUnique().getInteger("sumrating");
+        Integer retInt = preparedSqlSumRating.findUnique().getInteger("sumrating");
+        return retInt == null ? 0 : retInt;
     }
 
-    public final boolean warnPlayer(String warnedPlayer, String staffMemberName, String message, Integer rating) {
-        if (warnedPlayer == null || staffMemberName == null || warnedPlayer.isEmpty() || staffMemberName.isEmpty()) {
+    /**
+     * 
+     * @param warnedPlayerName
+     * @param staffMemberName
+     * @param message
+     * @param rating
+     * @return
+     * 
+     * @since 1.1
+     */
+    public final boolean addWarn(String warnedPlayerName, String staffMemberName, String message, Integer rating) {
+        if (warnedPlayerName == null || staffMemberName == null || warnedPlayerName.isEmpty() || staffMemberName.isEmpty()) {
             return false;
         }
 
         Warn newWarn = new Warn();
-        newWarn.setPlayerName(warnedPlayer);
-        newWarn.setStaffname(staffMemberName);
+        newWarn.setPlayerName(warnedPlayerName);
+        newWarn.setStaffName(staffMemberName);
         newWarn.setMessage(message);
         newWarn.setRating(rating);
         newWarn.setCreated(new Date());
@@ -79,13 +134,20 @@ public class WarnService {
             return false;
         }
 
-        if (BukkitUtils.isPlayerOnline(warnedPlayer)) {
-            notAcceptedWarnedPlayersCache.add(warnedPlayer.toLowerCase());
+        if (BukkitUtils.isPlayerOnline(warnedPlayerName)) {
+            notAcceptedWarnedPlayersCache.add(warnedPlayerName.toLowerCase());
         }
 
         return true;
     }
 
+    /**
+     * 
+     * @param id
+     * @return
+     * 
+     * @since 1.1
+     */
     public final boolean deleteWarn(Integer id) {
         Warn warn = dbConnection.find(Warn.class, id);
         if (warn == null) {
@@ -104,6 +166,13 @@ public class WarnService {
         return true;
     }
 
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since 1.1
+     */
     public final boolean deleteWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return false;
@@ -129,6 +198,13 @@ public class WarnService {
         return true;
     }
 
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since
+     */
     public final boolean acceptWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return false;
@@ -158,6 +234,13 @@ public class WarnService {
         return true;
     }
 
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since 1.1
+     */
     public final boolean hasPlayerNotAcceptedWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return false;
@@ -166,6 +249,13 @@ public class WarnService {
         return dbConnection.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findRowCount() > 0;
     }
 
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since 1.1
+     */
     public final boolean isPlayersWarned(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return false;
@@ -174,23 +264,38 @@ public class WarnService {
         return dbConnection.find(Warn.class).where().ieq("playername", playerName).findRowCount() > 0;
     }
 
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since 1.1
+     */
     public final Collection<String> searchPlayerWithWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return new ArrayList<String>();
         }
 
-        List<Warn> found = dbConnection.find(Warn.class).where().like("playername", "%" + playerName + "%").setMaxRows(8).setDistinct(true).findList();
+        preparedSqlSearchWarnedPlayer.setParameter("playerName", "%" + playerName + "%");
+        List<SqlRow> found = preparedSqlSearchWarnedPlayer.findList();
 
-        ArrayConvert<Warn> wc = new ArrayConvert<Warn>() {
+        ArrayConvert<SqlRow> wc = new ArrayConvert<SqlRow>() {
             @Override
-            protected String convertToString(Warn obj) {
-                return obj.getPlayerName();
+            protected String convertToString(SqlRow obj) {
+                return obj.getString("playername");
             }
         };
 
         return wc.toCollection(found);
     }
 
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since 1.1
+     */
     public final List<Warn> getWarnList(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return new ArrayList<Warn>();
@@ -199,6 +304,11 @@ public class WarnService {
         return dbConnection.find(Warn.class).where().like("playername", "%" + playerName + "%").findList();
     }
 
+    /**
+     * 
+     * @param playerName
+     * @since 1.1
+     */
     public final void cacheNotAcceptedWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return;
@@ -209,6 +319,12 @@ public class WarnService {
         }
     }
 
+    /**
+     * 
+     * @param playerName
+     * 
+     * @since 1.1
+     */
     public final void removeCachedNotAcceptedWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return;
@@ -217,6 +333,13 @@ public class WarnService {
         notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
     }
 
+    /**
+     * 
+     * @param playerName
+     * @return
+     * 
+     * @since 1.1
+     */
     public final boolean hasPlayerNotAcceptedWarnsCached(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return false;
@@ -235,6 +358,8 @@ public class WarnService {
      *         the playerName is null or empty false will be returned.
      * 
      * @since 1.1
+     * @see <a
+     *      href="http://dev.bukkit.org/bukkit-plugins/logblock/">LogBlock</a>
      */
     public final boolean hasPlayedBefore(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
@@ -243,7 +368,12 @@ public class WarnService {
 
         preparedSqlOfflinePlayer.setParameter("playerName", playerName);
 
-        return (preparedSqlOfflinePlayer.findUnique() != null);
+        try {
+            return (preparedSqlOfflinePlayer.findUnique() != null);
+        } catch (PersistenceException e) {
+            logger.log(Level.SEVERE, "error on query LogBlock Table", e);
+            return false;
+        }
     }
 
     /**

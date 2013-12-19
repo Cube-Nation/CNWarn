@@ -24,7 +24,7 @@ public class WarnAddCommand {
     @Command(main = "warn", min = 3, usage = "[Spieler] [Grund] [Bewertung]", help = "Verwarnt einen Spieler")
     @CommandPermissions("cubewarn.staff")
     public void addWarning(Player player, String[] args) {
-        warnService.clearOld();
+        warnService.clearExpired();
 
         LinkedList<String> argList = new LinkedList<String>(Arrays.asList(args));
 
@@ -61,11 +61,11 @@ public class WarnAddCommand {
         String existsWarnCount = "0";
         String existsWarnRatingSum = "0";
         if (wasWarned) {
-            existsWarnCount = warnService.getWarnCount(playerName).toString();
-            existsWarnRatingSum = warnService.getRatingSum(playerName).toString();
+            existsWarnCount = Integer.toString(warnService.getWarnCount(playerName));
+            existsWarnRatingSum = Integer.toString(warnService.getRatingSum(playerName));
         }
 
-        if (!warnService.warnPlayer(playerName, player.getName(), message, rating)) {
+        if (!warnService.addWarn(playerName, player.getName(), message, rating)) {
             chatService.one(player, "staff.newWarnFailed");
             return;
         }

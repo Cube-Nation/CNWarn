@@ -1,7 +1,7 @@
 author: DerFlash
 database: true
 description: Cube-Nation Warn Plugin
-main: de.derflash.plugins.cnwarn.CNWarn
+main: de.derflash.plugins.cnwarn.CnWarn
 name: CNWarn
 startup: postworld
 url: http://www.cube-nation.de/

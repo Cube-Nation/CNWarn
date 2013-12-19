@@ -22,7 +22,7 @@ public class WarnListCommand {
 
     @Command(main = "warn", sub = { "list", "info" }, min = 0, max = 0, help = "Zeigt dir deine Verwarnungen an.")
     public void listWarningPlayer(Player player) {
-        warnService.clearOld();
+        warnService.clearExpired();
 
         String playerName = player.getName();
         if (warnService.isPlayersWarned(playerName)) {
@@ -53,7 +53,7 @@ public class WarnListCommand {
     @Command(main = "warn", sub = { "list", "info" }, min = 1, max = 1, usage = "[Spieler]", help = "Zeigt alle Verwarnungen des Spielers")
     @CommandPermissions("cubewarn.staff")
     public void listWarningAdmin(Player player, String playerName) {
-        warnService.clearOld();
+        warnService.clearExpired();
 
         if (warnService.isPlayersWarned(playerName)) {
             chatService.one(player, "player.warnHead", playerName);

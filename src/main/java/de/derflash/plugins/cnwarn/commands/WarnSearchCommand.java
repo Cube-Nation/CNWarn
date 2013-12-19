@@ -22,7 +22,7 @@ public class WarnSearchCommand {
     @Command(main = "warn", sub = { "search", "check" }, min = 1, max = 1, usage = "[Spieler]", help = "Nach einem Spieler suchen.")
     @CommandPermissions("cubewarn.staff")
     public void checkWarning(Player player, String playerName) {
-        warnService.clearOld();
+        warnService.clearExpired();
 
         if (playerName.length() < 3) {
             chatService.one(player, "staff.checkWarnNotCorrect");
