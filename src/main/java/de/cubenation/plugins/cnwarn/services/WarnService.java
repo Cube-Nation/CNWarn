@@ -1,4 +1,4 @@
-package de.derflash.plugins.cnwarn.services;
+package de.cubenation.plugins.cnwarn.services;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -18,9 +18,9 @@ import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 
+import de.cubenation.plugins.cnwarn.model.Warn;
 import de.cubenation.plugins.utils.ArrayConvert;
 import de.cubenation.plugins.utils.BukkitUtils;
-import de.derflash.plugins.cnwarn.model.Warn;
 
 /**
  * With this service, player warnings can be managed. Players warnings have a

@@ -1,4 +1,4 @@
-package de.derflash.plugins.cnwarn.eventlistener;
+package de.cubenation.plugins.cnwarn.eventlistener;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -9,10 +9,10 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import de.cubenation.plugins.cnwarn.model.Watch;
+import de.cubenation.plugins.cnwarn.services.WarnService;
+import de.cubenation.plugins.cnwarn.services.WatchService;
 import de.cubenation.plugins.utils.chatapi.ChatService;
-import de.derflash.plugins.cnwarn.model.Watch;
-import de.derflash.plugins.cnwarn.services.WarnService;
-import de.derflash.plugins.cnwarn.services.WatchService;
 
 public class PlayerListener implements Listener {
     private WarnService warnService;

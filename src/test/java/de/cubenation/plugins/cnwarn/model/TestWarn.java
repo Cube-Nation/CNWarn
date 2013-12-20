@@ -1,4 +1,4 @@
-package de.derflash.plugins.cnwarn.model;
+package de.cubenation.plugins.cnwarn.model;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -10,8 +10,9 @@ import java.util.GregorianCalendar;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.cubenation.plugins.cnwarn.CnWarn;
+import de.cubenation.plugins.cnwarn.model.Warn;
 import de.cubenation.plugins.utils.testapi.AbstractDatabaseTest;
-import de.derflash.plugins.cnwarn.CnWarn;
 
 public class TestWarn extends AbstractDatabaseTest {
     @Before

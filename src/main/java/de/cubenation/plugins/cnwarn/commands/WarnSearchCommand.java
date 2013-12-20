@@ -1,14 +1,14 @@
-package de.derflash.plugins.cnwarn.commands;
+package de.cubenation.plugins.cnwarn.commands;
 
 import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.cnwarn.services.WarnService;
 import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
-import de.derflash.plugins.cnwarn.services.WarnService;
 
 public class WarnSearchCommand {
     private WarnService warnService;

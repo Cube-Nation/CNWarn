@@ -1,14 +1,14 @@
-package de.derflash.plugins.cnwarn.commands;
+package de.cubenation.plugins.cnwarn.commands;
 
 import java.util.List;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.cnwarn.model.Watch;
+import de.cubenation.plugins.cnwarn.services.WatchService;
 import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
-import de.derflash.plugins.cnwarn.model.Watch;
-import de.derflash.plugins.cnwarn.services.WatchService;
 
 public class WatchListCommand {
     private WatchService watchService;

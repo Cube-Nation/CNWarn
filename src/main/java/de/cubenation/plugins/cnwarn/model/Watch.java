@@ -1,4 +1,4 @@
-package de.derflash.plugins.cnwarn.model;
+package de.cubenation.plugins.cnwarn.model;
 
 import java.util.Date;
 

@@ -1,4 +1,4 @@
-package de.derflash.plugins.cnwarn.services;
+package de.cubenation.plugins.cnwarn.services;
 
 import java.util.Date;
 import java.util.List;
@@ -9,7 +9,7 @@ import javax.persistence.OptimisticLockException;
 
 import com.avaje.ebean.EbeanServer;
 
-import de.derflash.plugins.cnwarn.model.Watch;
+import de.cubenation.plugins.cnwarn.model.Watch;
 
 /**
  * With this service, player watches can be managed.

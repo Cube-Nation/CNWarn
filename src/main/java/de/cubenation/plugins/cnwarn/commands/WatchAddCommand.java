@@ -1,11 +1,11 @@
-package de.derflash.plugins.cnwarn.commands;
+package de.cubenation.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.cnwarn.services.WatchService;
 import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
 import de.cubenation.plugins.utils.commandapi.annotation.CommandPermissions;
-import de.derflash.plugins.cnwarn.services.WatchService;
 
 public class WatchAddCommand {
     private WatchService watchService;

@@ -1,14 +1,14 @@
-package de.derflash.plugins.cnwarn.commands;
+package de.cubenation.plugins.cnwarn.commands;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.cnwarn.model.Warn;
+import de.cubenation.plugins.cnwarn.services.WarnService;
 import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
-import de.derflash.plugins.cnwarn.model.Warn;
-import de.derflash.plugins.cnwarn.services.WarnService;
 
 public class WarnAcceptCommand {
     private WarnService warnService;

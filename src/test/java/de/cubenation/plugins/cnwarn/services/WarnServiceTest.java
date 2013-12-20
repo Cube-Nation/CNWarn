@@ -1,4 +1,4 @@
-package de.derflash.plugins.cnwarn.services;
+package de.cubenation.plugins.cnwarn.services;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -17,11 +17,12 @@ import org.bukkit.Bukkit;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.cubenation.plugins.cnwarn.CnWarn;
+import de.cubenation.plugins.cnwarn.model.Warn;
+import de.cubenation.plugins.cnwarn.services.WarnService;
 import de.cubenation.plugins.utils.testapi.AbstractDatabaseTest;
 import de.cubenation.plugins.utils.testapi.TestPlayer;
 import de.cubenation.plugins.utils.testapi.TestServer;
-import de.derflash.plugins.cnwarn.CnWarn;
-import de.derflash.plugins.cnwarn.model.Warn;
 
 public class WarnServiceTest extends AbstractDatabaseTest {
     private WarnService warnService;
