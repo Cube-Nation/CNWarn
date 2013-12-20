@@ -162,16 +162,12 @@ public class WarnService {
      * 
      * @param id
      *            warn id
-     * @return True, if the warn was deleted successful. False, if the id is
-     *         null or the warn could not be found or delete.
+     * @return True, if the warn was deleted successful. False, if the warn
+     *         could not be found or deleted.
      * 
      * @since 1.1
      */
-    public final boolean deleteWarn(Integer id) {
-        if (id == null) {
-            return false;
-        }
-
+    public final boolean deleteWarn(int id) {
         Warn warn = conn.find(Warn.class, id);
         if (warn == null) {
             return false;

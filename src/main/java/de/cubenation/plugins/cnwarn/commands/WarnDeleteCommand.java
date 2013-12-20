@@ -19,7 +19,7 @@ public class WarnDeleteCommand {
     @Command(main = "warn", sub = "del", min = 1, max = 1, usage = "[Id]", help = "Löscht eine einzelne Verwarnung")
     @CommandPermissions("cubewarn.admin")
     public void deleteWarning(Player player, String warnIdStr) {
-        Integer id;
+        int id;
         try {
             id = Integer.parseInt(warnIdStr);
         } catch (Exception e) {

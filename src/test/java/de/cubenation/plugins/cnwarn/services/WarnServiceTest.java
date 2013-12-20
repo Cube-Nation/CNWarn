@@ -214,11 +214,6 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void testDeleteWarnNull() {
-        assertFalse(warnService.deleteWarn(null));
-    }
-
-    @Test
     public void testDeleteWarnWrongId() {
         assertFalse(warnService.deleteWarn(5));
     }
