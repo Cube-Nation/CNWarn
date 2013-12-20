@@ -30,42 +30,46 @@ import de.derflash.plugins.cnwarn.model.Warn;
  */
 public class WarnService {
     // external services
-    private final EbeanServer dbConnection;
-    private final Logger logger;
+    private final EbeanServer conn;
+    private final Logger log;
 
     // Hashset all (!online!) players with not accepted warnings
-    private final HashSet<String> notAcceptedWarnedPlayersCache = new HashSet<String>();
+    private final HashSet<String> notAcceptedWarnedPlayerCache = new HashSet<String>();
 
     private int expirationDays = 30;
 
-    private final SqlQuery preparedSqlSumRating;
-    private final SqlQuery preparedSqlSearchWarnedPlayer;
-    private final SqlQuery preparedSqlOfflinePlayer;
+    private final SqlQuery sqlSumRating;
+    private final SqlQuery sqlSearchWarnedPlayer;
+    private final SqlQuery sqlLogBlockPlayer;
 
     /**
+     * Initial with external services.
      * 
-     * @param dbConnection
-     * @param logger
+     * @param conn
+     *            EbeanServer for database connection
+     * @param log
+     *            Logger for unexpected errors
      * 
      * @since 1.1
      */
-    public WarnService(EbeanServer dbConnection, Logger logger) {
-        this.dbConnection = dbConnection;
-        this.logger = logger;
+    public WarnService(EbeanServer conn, Logger log) {
+        this.conn = conn;
+        this.log = log;
 
-        preparedSqlSumRating = dbConnection
-                .createSqlQuery("select sum(`rating`) as sumrating from `cn_warns` where lower(`playername`) = lower(:playerName) limit 1");
-        preparedSqlSearchWarnedPlayer = dbConnection
+        sqlSumRating = conn.createSqlQuery("select sum(`rating`) as sumrating from `cn_warns` where lower(`playername`) = lower(:playerName) limit 1");
+        sqlSearchWarnedPlayer = conn
                 .createSqlQuery("select distinct `playername` as playername from `cn_warns` where `playername` like :playerName order by `playername` limit 8");
-        preparedSqlOfflinePlayer = dbConnection.createSqlQuery("select * from `lb-players` where lower(`playername`) = lower(:playerName)");
+        sqlLogBlockPlayer = conn.createSqlQuery("select * from `lb-players` where lower(`playername`) = lower(:playerName)");
     }
 
     /**
      * Set for expired warns rating value to zero.
      * 
+     * @return count of warns that was cleared.
+     * 
      * @since 1.1
      */
-    public final void clearExpired() {
+    public final int clearExpired() {
         Calendar cal = new GregorianCalendar();
         cal.clear(Calendar.HOUR_OF_DAY);
         cal.clear(Calendar.MINUTE);
@@ -73,45 +77,59 @@ public class WarnService {
         cal.clear(Calendar.MILLISECOND);
         cal.add(Calendar.DAY_OF_MONTH, -expirationDays);
 
-        List<Warn> findList = dbConnection.find(Warn.class).where().gt("rating", 0).lt("accepted", cal.getTime()).findList();
+        List<Warn> findList = conn.find(Warn.class).where().gt("rating", 0).lt("accepted", cal.getTime()).findList();
         for (Warn find : findList) {
             find.setRating(0);
         }
-        dbConnection.save(findList);
+        conn.save(findList);
+
+        return findList.size();
     }
 
     /**
+     * Return the count of warns for a player.
      * 
      * @param playerName
-     * @return
+     *            not case-sensitive player name
+     * @return count of warns
      * 
      * @since 1.1
      */
     public final int getWarnCount(String playerName) {
-        return dbConnection.find(Warn.class).where().ieq("playername", playerName).findRowCount();
+        return conn.find(Warn.class).where().ieq("playername", playerName).findRowCount();
     }
 
     /**
+     * Return the total sum ratings from all player warns.
      * 
      * @param playerName
-     * @return
+     *            not case-sensitive player name
+     * @return sum of warn ratings
      * 
      * @since 1.1
      */
     public final int getRatingSum(String playerName) {
-        preparedSqlSumRating.setParameter("playerName", playerName);
+        sqlSumRating.setParameter("playerName", playerName);
 
-        Integer retInt = preparedSqlSumRating.findUnique().getInteger("sumrating");
+        Integer retInt = sqlSumRating.findUnique().getInteger("sumrating");
         return retInt == null ? 0 : retInt;
     }
 
     /**
+     * Add a warn for a player. If player is only add cached not acceped warn
+     * too.
      * 
      * @param warnedPlayerName
+     *            player name that is warned
      * @param staffMemberName
+     *            player name that warned the player
      * @param message
+     *            warn reason
      * @param rating
-     * @return
+     *            the heaviness of the warn
+     * @return True, if warn was added. False, if warnedPlayerName or
+     *         staffMemberName was null or empty. Also false, if adding was not
+     *         successful.
      * 
      * @since 1.1
      */
@@ -128,48 +146,57 @@ public class WarnService {
         newWarn.setCreated(new Date());
 
         try {
-            dbConnection.save(newWarn);
+            conn.save(newWarn);
         } catch (OptimisticLockException e) {
-            logger.log(Level.SEVERE, "error on save data", e);
+            log.log(Level.SEVERE, "error on save data", e);
             return false;
         }
 
-        if (BukkitUtils.isPlayerOnline(warnedPlayerName)) {
-            notAcceptedWarnedPlayersCache.add(warnedPlayerName.toLowerCase());
-        }
+        cacheNotAcceptedWarns(warnedPlayerName);
 
         return true;
     }
 
     /**
+     * Delete warn by id. Remove cached not accepted warns for the player.
      * 
      * @param id
-     * @return
+     *            warn id
+     * @return True, if the warn was deleted successful. False, if the id is
+     *         null or the warn could not be found or delete.
      * 
      * @since 1.1
      */
     public final boolean deleteWarn(Integer id) {
-        Warn warn = dbConnection.find(Warn.class, id);
+        if (id == null) {
+            return false;
+        }
+
+        Warn warn = conn.find(Warn.class, id);
         if (warn == null) {
             return false;
         }
 
         try {
-            dbConnection.delete(warn);
+            conn.delete(warn);
         } catch (OptimisticLockException e) {
-            logger.log(Level.SEVERE, "error on delete", e);
+            log.log(Level.SEVERE, "error on delete", e);
             return false;
         }
 
-        notAcceptedWarnedPlayersCache.remove(warn.getPlayerName().toLowerCase());
+        removeCachedNotAcceptedWarns(warn.getPlayerName());
 
         return true;
     }
 
     /**
+     * Delete all warns for a player. Remove cached not accepted warns for the
+     * player.
      * 
      * @param playerName
-     * @return
+     *            not case-sensitive player name
+     * @return True, if warns was deleted successful. False, if the playerName
+     *         is null or empty. Also false, if no warn exists for deletion.
      * 
      * @since 1.1
      */
@@ -178,39 +205,44 @@ public class WarnService {
             return false;
         }
 
-        Set<Warn> warns = dbConnection.find(Warn.class).where().ieq("playername", playerName).findSet();
+        Set<Warn> warns = conn.find(Warn.class).where().ieq("playername", playerName).findSet();
         if (warns.size() == 0) {
             return false;
         }
 
         try {
-            int deletedRows = dbConnection.delete(warns);
+            int deletedRows = conn.delete(warns);
             if (deletedRows == 0) {
                 return false;
             }
         } catch (OptimisticLockException e) {
-            logger.log(Level.SEVERE, "error on delete data", e);
+            log.log(Level.SEVERE, "error on delete data", e);
             return false;
         }
 
-        notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
+        removeCachedNotAcceptedWarns(playerName);
 
         return true;
     }
 
     /**
+     * Accept all non accepted warns for the player. Remove cached not accepted
+     * warns for the player.
      * 
      * @param playerName
-     * @return
+     *            not case-sensitive player name
+     * @return True, if the warns acceptance successful save. False, if the
+     *         playerName is null or empty. Also false, if no warn exists for
+     *         acceptance or saving is failed.
      * 
-     * @since
+     * @since 1.1
      */
     public final boolean acceptWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
             return false;
         }
 
-        Set<Warn> unAccWarns = dbConnection.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findSet();
+        Set<Warn> unAccWarns = conn.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findSet();
         if (unAccWarns.size() == 0) {
             return false;
         }
@@ -220,24 +252,28 @@ public class WarnService {
         }
 
         try {
-            int savedRows = dbConnection.save(unAccWarns);
+            int savedRows = conn.save(unAccWarns);
             if (savedRows == 0) {
                 return false;
             }
         } catch (OptimisticLockException e) {
-            logger.log(Level.SEVERE, "error on save data", e);
+            log.log(Level.SEVERE, "error on save data", e);
             return false;
         }
 
-        notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
+        removeCachedNotAcceptedWarns(playerName);
 
         return true;
     }
 
     /**
+     * Check if the player has not accepted warns (accepted date is not set)
+     * against database.
      * 
      * @param playerName
-     * @return
+     *            not case-sensitive player name
+     * @return True, if not accepted warns exists in database. Otherwise false.
+     *         Also false, if the playerName is null or empty.
      * 
      * @since 1.1
      */
@@ -246,13 +282,17 @@ public class WarnService {
             return false;
         }
 
-        return dbConnection.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findRowCount() > 0;
+        return conn.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findRowCount() > 0;
     }
 
     /**
+     * Check if the player has not accepted warns (accepted date is not set)
+     * against database.
      * 
      * @param playerName
-     * @return
+     *            not case-sensitive player name
+     * @return True, if not accepted warns exists in database. Otherwise false.
+     *         Also false, if the playerName is null or empty.
      * 
      * @since 1.1
      */
@@ -261,23 +301,27 @@ public class WarnService {
             return false;
         }
 
-        return dbConnection.find(Warn.class).where().ieq("playername", playerName).findRowCount() > 0;
+        return conn.find(Warn.class).where().ieq("playername", playerName).findRowCount() > 0;
     }
 
     /**
+     * Search player names with warns.
      * 
-     * @param playerName
-     * @return
+     * @param searchPattern
+     *            not case-sensitive player name, wildcards '%' can be used.
+     * @return List of player names that was found for the searchPattern and has
+     *         warns. Return empty Collection, if the searchPattern is empty or
+     *         null.
      * 
      * @since 1.1
      */
-    public final Collection<String> searchPlayerWithWarns(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
+    public final Collection<String> searchPlayerWithWarns(String searchPattern) {
+        if (searchPattern == null || searchPattern.isEmpty()) {
             return new ArrayList<String>();
         }
 
-        preparedSqlSearchWarnedPlayer.setParameter("playerName", "%" + playerName + "%");
-        List<SqlRow> found = preparedSqlSearchWarnedPlayer.findList();
+        sqlSearchWarnedPlayer.setParameter("playerName", "%" + searchPattern + "%");
+        List<SqlRow> found = sqlSearchWarnedPlayer.findList();
 
         ArrayConvert<SqlRow> wc = new ArrayConvert<SqlRow>() {
             @Override
@@ -290,53 +334,74 @@ public class WarnService {
     }
 
     /**
+     * Search player warns.
      * 
-     * @param playerName
-     * @return
+     * @param searchPattern
+     *            not case-sensitive player name, wildcards '%' can be used.
+     * @return List of player names that was found for the searchPattern and has
+     *         warns. Return empty List, if the searchPattern is empty or null.
      * 
      * @since 1.1
      */
-    public final List<Warn> getWarnList(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
+    public final List<Warn> getWarnList(String searchPattern) {
+        if (searchPattern == null || searchPattern.isEmpty()) {
             return new ArrayList<Warn>();
         }
 
-        return dbConnection.find(Warn.class).where().like("playername", "%" + playerName + "%").findList();
+        return conn.find(Warn.class).where().like("playername", "%" + searchPattern + "%").findList();
     }
 
     /**
+     * Checks, if the player has not accpeted warns against cache.
      * 
      * @param playerName
+     *            not case-sensitive player name
+     * @return True, if the player is online. Otherwise false. Also false, if
+     *         the playerName is null or empty.
+     * 
      * @since 1.1
      */
-    public final void cacheNotAcceptedWarns(String playerName) {
+    public final boolean cacheNotAcceptedWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
-            return;
+            return false;
         }
 
         if (BukkitUtils.isPlayerOnline(playerName)) {
-            notAcceptedWarnedPlayersCache.add(playerName.toLowerCase());
+            notAcceptedWarnedPlayerCache.add(playerName.toLowerCase());
+
+            return true;
         }
+
+        return false;
     }
 
     /**
+     * Remove player from not accepted warns cache.
      * 
      * @param playerName
+     *            not case-sensitive player name
+     * @return True, if successful removed. False, if the playerName is null or
+     *         empty.
      * 
      * @since 1.1
      */
-    public final void removeCachedNotAcceptedWarns(String playerName) {
+    public final boolean removeCachedNotAcceptedWarns(String playerName) {
         if (playerName == null || playerName.isEmpty()) {
-            return;
+            return false;
         }
 
-        notAcceptedWarnedPlayersCache.remove(playerName.toLowerCase());
+        notAcceptedWarnedPlayerCache.remove(playerName.toLowerCase());
+
+        return true;
     }
 
     /**
+     * Checks, if the player has not accpeted warns against cache.
      * 
      * @param playerName
-     * @return
+     *            not case-sensitive player name
+     * @return True, if the player has not accpeted warns. Otherwise false. Also
+     *         false, if the playerName is null or empty.
      * 
      * @since 1.1
      */
@@ -345,13 +410,15 @@ public class WarnService {
             return false;
         }
 
-        return notAcceptedWarnedPlayersCache.contains(playerName.toLowerCase());
+        return notAcceptedWarnedPlayerCache.contains(playerName.toLowerCase());
     }
 
     /**
      * Checks if the player was sometime before joined the server. Detailed it
      * will checked the LogBlock-player table for that, on the same database
      * connection.
+     * 
+     * If LogBlock-table not exists, fallback looks to player online status.
      * 
      * @param playerName
      * @return True, if the player had was online before, otherwise false. If
@@ -366,13 +433,15 @@ public class WarnService {
             return false;
         }
 
-        preparedSqlOfflinePlayer.setParameter("playerName", playerName);
+        sqlLogBlockPlayer.setParameter("playerName", playerName);
 
         try {
-            return (preparedSqlOfflinePlayer.findUnique() != null);
+            return (sqlLogBlockPlayer.findUnique() != null);
         } catch (PersistenceException e) {
-            logger.log(Level.SEVERE, "error on query LogBlock Table", e);
-            return false;
+            log.log(Level.SEVERE, "error on query LogBlock Table", e);
+
+            // fallback if player is online
+            return BukkitUtils.isPlayerOnline(playerName);
         }
     }
 
@@ -417,7 +486,7 @@ public class WarnService {
      * @since 1.2
      */
     public final boolean setExpirationDays(int expirationDays) {
-        if (expirationDays < 0) {
+        if (expirationDays <= 0) {
             return false;
         }
 

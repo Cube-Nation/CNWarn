@@ -7,8 +7,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
@@ -211,6 +213,11 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
+    public void testDeleteWarnNull() {
+        assertFalse(warnService.deleteWarn(null));
+    }
+
+    @Test
     public void testDeleteWarnWrongId() {
         assertFalse(warnService.deleteWarn(5));
     }
@@ -258,67 +265,333 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void testDeleteWarns() {
-        warnService.deleteWarns(testOnlinePlayer);
+    public void testDeleteWarnsNull() {
+        assertFalse(warnService.deleteWarns(null));
+        assertFalse(warnService.deleteWarns(""));
     }
 
     @Test
-    public void testAcceptWarns() {
-        warnService.acceptWarns(testOnlinePlayer);
+    public void testDeleteWarnsEmtpy() {
+        assertFalse(warnService.deleteWarns(testOnlinePlayer));
+    }
+
+    @Test
+    public void testDeleteWarnsOnline() {
+        assertEquals(0, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+        assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
+
+        assertTrue(warnService.addWarn(testOnlinePlayer, testStaff, "message", 1));
+
+        assertEquals(1, dbConnection.find(Warn.class).findList().size());
+        assertTrue(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+        assertEquals(1, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
+
+        assertTrue(warnService.deleteWarns(testOnlinePlayer));
+
+        assertEquals(0, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+        assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
+    }
+
+    @Test
+    public void testDeleteWarnsOffline() {
+        assertEquals(0, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
+        assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());
+
+        assertTrue(warnService.addWarn(testOfflinePlayer, testStaff, "message", 1));
+
+        assertEquals(1, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
+        assertEquals(1, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());
+
+        assertTrue(warnService.deleteWarns(testOfflinePlayer));
+
+        assertEquals(0, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
+        assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());
+    }
+
+    @Test
+    public void testAcceptWarnsNull() {
+        assertFalse(warnService.acceptWarns(null));
+        assertFalse(warnService.acceptWarns(""));
+    }
+
+    @Test
+    public void testAcceptWarnsEmpty() {
+        assertFalse(warnService.acceptWarns(testOnlinePlayer));
+    }
+
+    @Test
+    public void testAcceptWarnsOnline() {
+        assertEquals(0, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+        assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
+
+        assertTrue(warnService.addWarn(testOnlinePlayer, testStaff, "message", 1));
+
+        assertEquals(1, dbConnection.find(Warn.class).findList().size());
+        assertTrue(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+        assertEquals(1, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
+
+        assertTrue(warnService.acceptWarns(testOnlinePlayer));
+
+        assertEquals(1, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+        assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
+    }
+
+    @Test
+    public void testAcceptWarnsOffline() {
+        assertEquals(0, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
+        assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());
+
+        assertTrue(warnService.addWarn(testOfflinePlayer, testStaff, "message", 1));
+
+        assertEquals(1, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
+        assertEquals(1, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());
+
+        assertTrue(warnService.acceptWarns(testOfflinePlayer));
+
+        assertEquals(1, dbConnection.find(Warn.class).findList().size());
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
+        assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());
+    }
+
+    @Test
+    public void testHasPlayerNotAcceptedWarnsNull() {
+        assertFalse(warnService.hasPlayerNotAcceptedWarns(null));
+        assertFalse(warnService.hasPlayerNotAcceptedWarns(""));
     }
 
     @Test
     public void testHasPlayerNotAcceptedWarns() {
-        warnService.hasPlayerNotAcceptedWarns(testOnlinePlayer);
+        assertFalse(warnService.hasPlayerNotAcceptedWarns(testOnlinePlayer));
+
+        assertTrue(warnService.addWarn(testOnlinePlayer, testStaff, "message", 1));
+
+        assertTrue(warnService.hasPlayerNotAcceptedWarns(testOnlinePlayer));
+    }
+
+    @Test
+    public void testIsPlayersWarnedNull() {
+        assertFalse(warnService.isPlayersWarned(null));
+        assertFalse(warnService.isPlayersWarned(""));
     }
 
     @Test
     public void testIsPlayersWarned() {
-        warnService.isPlayersWarned(testOnlinePlayer);
+        assertFalse(warnService.isPlayersWarned(testOnlinePlayer));
+
+        assertTrue(warnService.addWarn(testOnlinePlayer, testStaff, "message", 1));
+
+        assertTrue(warnService.isPlayersWarned(testOnlinePlayer));
+    }
+
+    @Test
+    public void testSearchPlayerWithWarnsNull() {
+        Collection<String> searchWarnsNull = warnService.searchPlayerWithWarns(null);
+        assertNotNull(searchWarnsNull);
+        assertEquals(0, searchWarnsNull.size());
+        Collection<String> searchWarnsEmpty = warnService.searchPlayerWithWarns("");
+        assertNotNull(searchWarnsEmpty);
+        assertEquals(0, searchWarnsEmpty.size());
     }
 
     @Test
     public void testSearchPlayerWithWarns() {
-        warnService.searchPlayerWithWarns(testOnlinePlayer);
+        Collection<String> searchWarnsExact = warnService.searchPlayerWithWarns(testOnlinePlayer);
+        assertNotNull(searchWarnsExact);
+        assertEquals(0, searchWarnsExact.size());
+        Collection<String> searchWarnsLike = warnService.searchPlayerWithWarns(testOnlinePlayer.substring(1, testOnlinePlayer.length() - 2));
+        assertNotNull(searchWarnsLike);
+        assertEquals(0, searchWarnsLike.size());
+
+        assertTrue(warnService.addWarn(testOnlinePlayer, testStaff, "message", 1));
+
+        searchWarnsExact = warnService.searchPlayerWithWarns(testOnlinePlayer);
+        assertNotNull(searchWarnsExact);
+        assertEquals(1, searchWarnsExact.size());
+        assertTrue(searchWarnsExact.contains(testOnlinePlayer));
+        searchWarnsLike = warnService.searchPlayerWithWarns(testOnlinePlayer.substring(1, testOnlinePlayer.length() - 2));
+        assertNotNull(searchWarnsExact);
+        assertEquals(1, searchWarnsLike.size());
+        assertTrue(searchWarnsLike.contains(testOnlinePlayer));
+    }
+
+    @Test
+    public void testGetWarnListNull() {
+        List<Warn> listWarnsNull = warnService.getWarnList(null);
+        assertNotNull(listWarnsNull);
+        assertEquals(0, listWarnsNull.size());
+        List<Warn> listWarnsEmpty = warnService.getWarnList("");
+        assertNotNull(listWarnsEmpty);
+        assertEquals(0, listWarnsEmpty.size());
     }
 
     @Test
     public void testGetWarnList() {
-        warnService.getWarnList(testOnlinePlayer);
+        List<Warn> listWarns = warnService.getWarnList(testOnlinePlayer);
+        assertNotNull(listWarns);
+        assertEquals(0, listWarns.size());
+
+        Warn warnFirst = new Warn();
+        warnFirst.setPlayerName(testOnlinePlayer);
+        warnFirst.setStaffName(testStaff);
+        warnFirst.setCreated(new Date());
+        warnFirst.setRating(2);
+        warnFirst.setMessage("message");
+        dbConnection.save(warnFirst);
+
+        listWarns = warnService.getWarnList(testOnlinePlayer);
+        assertNotNull(listWarns);
+        assertEquals(1, listWarns.size());
+
+        Warn warn = listWarns.get(0);
+
+        assertNull(warn.getAccepted());
+        assertNotNull(warn.getCreated());
+        assertNotNull(warn.getId());
+        assertNotNull(warn.getMessage());
+        assertEquals("message", warn.getMessage());
+        assertNotNull(warn.getPlayerName());
+        assertEquals(testOnlinePlayer, warn.getPlayerName());
+        assertEquals(2, warn.getRating());
+        assertNotNull(warn.getStaffName());
+        assertEquals(testStaff, warn.getStaffName());
+
+        Warn warnSecond = new Warn();
+        warnSecond.setPlayerName(testOnlinePlayer);
+        warnSecond.setStaffName(testStaff);
+        warnSecond.setCreated(new Date());
+        warnSecond.setRating(2);
+        warnSecond.setMessage("message");
+        dbConnection.save(warnSecond);
+
+        listWarns = warnService.getWarnList(testOnlinePlayer);
+        assertNotNull(listWarns);
+        assertEquals(2, listWarns.size());
     }
 
     @Test
-    public void testCacheNotAcceptedWarns() {
-        warnService.cacheNotAcceptedWarns(testOnlinePlayer);
+    public void testCacheNotAcceptedWarnsNull() {
+        assertFalse(warnService.cacheNotAcceptedWarns(null));
+        assertFalse(warnService.cacheNotAcceptedWarns(""));
+    }
+
+    @Test
+    public void testCacheNotAcceptedWarnsOnline() {
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+
+        assertTrue(warnService.cacheNotAcceptedWarns(testOnlinePlayer));
+
+        assertTrue(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+    }
+
+    @Test
+    public void testCacheNotAcceptedWarnsOffline() {
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+
+        assertFalse(warnService.cacheNotAcceptedWarns(testOfflinePlayer));
+
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+    }
+
+    @Test
+    public void testRemoveCachedNotAcceptedWarnsNull() {
+        assertFalse(warnService.removeCachedNotAcceptedWarns(null));
+        assertFalse(warnService.removeCachedNotAcceptedWarns(""));
     }
 
     @Test
     public void testRemoveCachedNotAcceptedWarns() {
-        warnService.removeCachedNotAcceptedWarns(testOnlinePlayer);
+        assertTrue(warnService.cacheNotAcceptedWarns(testOnlinePlayer));
+        assertTrue(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+
+        assertTrue(warnService.removeCachedNotAcceptedWarns(testOnlinePlayer));
+
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+    }
+
+    @Test
+    public void testHasPlayerNotAcceptedWarnsCachedNull() {
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(""));
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(null));
     }
 
     @Test
     public void testHasPlayerNotAcceptedWarnsCached() {
-        warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer);
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+
+        assertTrue(warnService.cacheNotAcceptedWarns(testOnlinePlayer));
+
+        assertTrue(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
+
+        assertTrue(warnService.removeCachedNotAcceptedWarns(testOnlinePlayer));
+
+        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
     }
 
     @Test
-    public void testHasPlayedBefore() {
-        warnService.hasPlayedBefore(testOnlinePlayer);
+    public void testHasPlayedBeforeNull() {
+        assertFalse(warnService.hasPlayedBefore(""));
+        assertFalse(warnService.hasPlayedBefore(null));
+    }
+
+    @Test
+    public void testHasPlayedBeforeFallback() {
+        assertTrue(warnService.hasPlayedBefore(testOnlinePlayer));
+        assertFalse(warnService.hasPlayedBefore(testOfflinePlayer));
+    }
+
+    @Test
+    public void testCalculateExpirationDateNull() {
+        assertNull(warnService.calculateExpirationDate(null));
+
+        Warn warn = new Warn();
+        assertNull(warnService.calculateExpirationDate(warn));
     }
 
     @Test
     public void testCalculateExpirationDate() {
-        warnService.calculateExpirationDate(null);
+        Calendar cal = new GregorianCalendar();
+
+        Date acceptedDate = cal.getTime();
+        cal.add(Calendar.DAY_OF_MONTH, 30);
+        Date expiredDate = cal.getTime();
+
+        Warn warn = new Warn();
+        warn.setAccepted(acceptedDate);
+
+        Date calculateExpirationDate = warnService.calculateExpirationDate(warn);
+        assertNotNull(calculateExpirationDate);
+        assertEquals(expiredDate, calculateExpirationDate);
     }
 
     @Test
     public void testGetExpirationDays() {
-        warnService.getExpirationDays();
+        assertEquals(30, warnService.getExpirationDays());
+
+        assertTrue(warnService.setExpirationDays(1));
+
+        assertEquals(1, warnService.getExpirationDays());
     }
 
     @Test
     public void testSetExpirationDays() {
-        warnService.setExpirationDays(30);
+        assertEquals(30, warnService.getExpirationDays());
+
+        assertTrue(warnService.setExpirationDays(1));
+        assertEquals(1, warnService.getExpirationDays());
+
+        assertFalse(warnService.setExpirationDays(0));
+        assertEquals(1, warnService.getExpirationDays());
+
+        assertFalse(warnService.setExpirationDays(-2));
+        assertEquals(1, warnService.getExpirationDays());
     }
 }
