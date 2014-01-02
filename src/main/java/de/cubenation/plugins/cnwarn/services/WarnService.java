@@ -508,7 +508,8 @@ public class WarnService {
      * 
      * @param expirationDays
      *            Must be greater than 0 otherwise, statment will ignored.
-     * @return False, if the expirationDays smaller than 0, otherwise true
+     * @return False, if the expirationDays smaller or equals than 0, otherwise
+     *         true
      * 
      * @since 1.2
      */
