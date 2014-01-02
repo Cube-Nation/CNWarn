@@ -77,7 +77,7 @@ public class WarnAddCommand {
         }
 
         // inform play, if online
-        Player onlinePlayer = Bukkit.getPlayer(playerName);
+        Player onlinePlayer = Bukkit.getPlayerExact(playerName);
         if (onlinePlayer != null) {
             chatService.one(onlinePlayer, "player.warnJoinInfo", playerName);
         }

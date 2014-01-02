@@ -53,7 +53,7 @@ public class Warn {
     }
 
     public Player getPlayer() {
-        return Bukkit.getServer().getPlayer(playerName);
+        return Bukkit.getServer().getPlayerExact(playerName);
     }
 
     public void setPlayer(Player player) {
