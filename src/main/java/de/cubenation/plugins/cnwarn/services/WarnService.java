@@ -17,6 +17,7 @@ import javax.persistence.PersistenceException;
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
+import com.avaje.ebean.Transaction;
 
 import de.cubenation.plugins.cnwarn.model.Warn;
 import de.cubenation.plugins.utils.ArrayConvert;
@@ -65,7 +66,7 @@ public class WarnService {
     /**
      * Set for expired warns rating value to zero.
      * 
-     * @return count of warns that was cleared.
+     * @return count of warns that was cleared. On error -1 will be returned.
      * 
      * @since 1.1
      */
@@ -81,7 +82,19 @@ public class WarnService {
         for (Warn find : findList) {
             find.setRating(0);
         }
-        conn.save(findList);
+
+        Transaction transaction = conn.beginTransaction();
+        try {
+            conn.save(findList, transaction);
+            transaction.commit();
+        } catch (OptimisticLockException e) {
+            log.log(Level.SEVERE, "error on expired warns", e);
+            transaction.rollback();
+
+            return -1;
+        } finally {
+            transaction.end();
+        }
 
         return findList.size();
     }
@@ -145,11 +158,17 @@ public class WarnService {
         newWarn.setRating(rating);
         newWarn.setCreated(new Date());
 
+        Transaction transaction = conn.beginTransaction();
         try {
-            conn.save(newWarn);
+            conn.save(newWarn, transaction);
+            transaction.commit();
         } catch (OptimisticLockException e) {
-            log.log(Level.SEVERE, "error on save data", e);
+            log.log(Level.SEVERE, "error on save warn", e);
+            transaction.rollback();
+
             return false;
+        } finally {
+            transaction.end();
         }
 
         cacheNotAcceptedWarns(warnedPlayerName);
@@ -173,11 +192,17 @@ public class WarnService {
             return false;
         }
 
+        Transaction transaction = conn.beginTransaction();
         try {
-            conn.delete(warn);
+            conn.delete(warn, transaction);
+            transaction.commit();
         } catch (OptimisticLockException e) {
-            log.log(Level.SEVERE, "error on delete", e);
+            log.log(Level.SEVERE, "error on delete warn", e);
+            transaction.rollback();
+
             return false;
+        } finally {
+            transaction.end();
         }
 
         removeCachedNotAcceptedWarns(warn.getPlayerName());
@@ -206,14 +231,17 @@ public class WarnService {
             return false;
         }
 
+        Transaction transaction = conn.beginTransaction();
         try {
-            int deletedRows = conn.delete(warns);
-            if (deletedRows == 0) {
-                return false;
-            }
+            conn.delete(warns, transaction);
+            transaction.commit();
         } catch (OptimisticLockException e) {
-            log.log(Level.SEVERE, "error on delete data", e);
+            log.log(Level.SEVERE, "error on delete warns", e);
+            transaction.rollback();
+
             return false;
+        } finally {
+            transaction.end();
         }
 
         removeCachedNotAcceptedWarns(playerName);
@@ -247,14 +275,17 @@ public class WarnService {
             warn.setAccepted(new Date());
         }
 
+        Transaction transaction = conn.beginTransaction();
         try {
-            int savedRows = conn.save(unAccWarns);
-            if (savedRows == 0) {
-                return false;
-            }
+            conn.save(unAccWarns, transaction);
+            transaction.commit();
         } catch (OptimisticLockException e) {
-            log.log(Level.SEVERE, "error on save data", e);
+            log.log(Level.SEVERE, "error on accept warn", e);
+            transaction.rollback();
+
             return false;
+        } finally {
+            transaction.end();
         }
 
         removeCachedNotAcceptedWarns(playerName);

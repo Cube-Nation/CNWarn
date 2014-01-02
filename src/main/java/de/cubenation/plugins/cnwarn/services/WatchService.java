@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import javax.persistence.OptimisticLockException;
 
 import com.avaje.ebean.EbeanServer;
+import com.avaje.ebean.Transaction;
 
 import de.cubenation.plugins.cnwarn.model.Watch;
 
@@ -80,11 +81,17 @@ public class WatchService {
         watch.setCreated(new Date());
         watch.setStaffName(staffName);
 
+        Transaction transaction = conn.beginTransaction();
         try {
-            conn.save(watch);
+            conn.save(watch, transaction);
+            transaction.commit();
         } catch (OptimisticLockException e) {
             log.log(Level.SEVERE, "error on add watch", e);
+            transaction.rollback();
+
             return false;
+        } finally {
+            transaction.end();
         }
 
         return true;
@@ -135,11 +142,17 @@ public class WatchService {
             return false;
         }
 
+        Transaction transaction = conn.beginTransaction();
         try {
-            conn.delete(watch);
+            conn.delete(watch, transaction);
+            transaction.commit();
         } catch (OptimisticLockException e) {
             log.log(Level.SEVERE, "error on delete watch", e);
+            transaction.rollback();
+
             return false;
+        } finally {
+            transaction.end();
         }
 
         return true;
