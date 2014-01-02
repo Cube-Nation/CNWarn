@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.persistence.OptimisticLockException;
+import javax.persistence.PersistenceException;
 
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.Transaction;
 
 import de.cubenation.plugins.cnwarn.model.Watch;
+import de.cubenation.plugins.utils.EbeanHelper;
 
 /**
  * With this service, player watches can be managed.
@@ -85,13 +86,13 @@ public class WatchService {
         try {
             conn.save(watch, transaction);
             transaction.commit();
-        } catch (OptimisticLockException e) {
+        } catch (PersistenceException e) {
             log.log(Level.SEVERE, "error on add watch", e);
-            transaction.rollback();
+            EbeanHelper.rollbackQuiet(transaction);
 
             return false;
         } finally {
-            transaction.end();
+            EbeanHelper.endQuiet(transaction);
         }
 
         return true;
@@ -146,13 +147,13 @@ public class WatchService {
         try {
             conn.delete(watch, transaction);
             transaction.commit();
-        } catch (OptimisticLockException e) {
+        } catch (PersistenceException e) {
             log.log(Level.SEVERE, "error on delete watch", e);
-            transaction.rollback();
+            EbeanHelper.rollbackQuiet(transaction);
 
             return false;
         } finally {
-            transaction.end();
+            EbeanHelper.endQuiet(transaction);
         }
 
         return true;
