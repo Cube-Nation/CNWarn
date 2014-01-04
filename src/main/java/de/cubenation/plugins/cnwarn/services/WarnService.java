@@ -85,7 +85,7 @@ public class WarnService {
 
         Transaction transaction = conn.beginTransaction();
         try {
-            conn.save(findList, transaction);
+            conn.save(findList.iterator(), transaction);
             transaction.commit();
         } catch (PersistenceException e) {
             log.log(Level.SEVERE, "error on expired warns", e);
@@ -277,7 +277,7 @@ public class WarnService {
 
         Transaction transaction = conn.beginTransaction();
         try {
-            conn.save(unAccWarns, transaction);
+            conn.save(unAccWarns.iterator(), transaction);
             transaction.commit();
         } catch (PersistenceException e) {
             log.log(Level.SEVERE, "error on accept warn", e);
