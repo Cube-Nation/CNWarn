@@ -7,7 +7,7 @@ public class WarnsNotFoundException extends PlayerException {
     private static final long serialVersionUID = 9039231744996564277L;
 
     public WarnsNotFoundException(String playerName) {
-        super("warns not found for player", playerName);
+        super("warns not found for player " + playerName, playerName);
     }
 
     @Override

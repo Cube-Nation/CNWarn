@@ -9,7 +9,7 @@ public class WarnNotFoundException extends MessageableException {
     private final int warnId;
 
     public WarnNotFoundException(int warnId) {
-        super("warn not found for id");
+        super("warn not found for id " + Integer.toString(warnId));
 
         this.warnId = warnId;
     }
