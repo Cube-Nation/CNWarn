@@ -6,6 +6,7 @@ import java.util.Date;
 import org.bukkit.entity.Player;
 
 import de.cubenation.plugins.cnwarn.model.Warn;
+import de.cubenation.plugins.cnwarn.model.exception.WarnsNotFoundException;
 import de.cubenation.plugins.cnwarn.services.WarnService;
 import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
@@ -20,7 +21,7 @@ public class WarnAcceptCommand {
     }
 
     @Command(main = "warn", sub = "accept", max = 0, help = "Damit aktzeptierst du eine Verwarnung.")
-    public void acceptWarning(Player player) {
+    public void acceptWarning(Player player) throws WarnsNotFoundException {
         String playerName = player.getName();
         if (warnService.isPlayersWarned(playerName)) {
             if (warnService.hasPlayerNotAcceptedWarns(playerName)) {

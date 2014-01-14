@@ -2,6 +2,8 @@ package de.cubenation.plugins.cnwarn.commands;
 
 import org.bukkit.entity.Player;
 
+import de.cubenation.plugins.cnwarn.model.exception.WarnNotFoundException;
+import de.cubenation.plugins.cnwarn.model.exception.WarnsNotFoundException;
 import de.cubenation.plugins.cnwarn.services.WarnService;
 import de.cubenation.plugins.utils.chatapi.ChatService;
 import de.cubenation.plugins.utils.commandapi.annotation.Command;
@@ -18,7 +20,7 @@ public class WarnDeleteCommand {
 
     @Command(main = "warn", sub = "del", min = 1, max = 1, usage = "[Id]", help = "Löscht eine einzelne Verwarnung")
     @CommandPermissions("cubewarn.admin")
-    public void deleteWarning(Player player, String warnIdStr) {
+    public void deleteWarning(Player player, String warnIdStr) throws WarnNotFoundException {
         int id;
         try {
             id = Integer.parseInt(warnIdStr);
@@ -34,7 +36,7 @@ public class WarnDeleteCommand {
 
     @Command(main = "warn", sub = "delall", min = 1, max = 1, usage = "[Spieler]", help = "Löscht alle Verwarnungen des Spielers")
     @CommandPermissions("cubewarn.admin")
-    public void deleteAllWarning(Player player, String playerName) {
+    public void deleteAllWarning(Player player, String playerName) throws WarnsNotFoundException {
         if (warnService.isPlayersWarned(playerName)) {
             if (!warnService.deleteWarns(playerName)) {
                 chatService.one(player, "staff.deleteAllWarnFailed", playerName);

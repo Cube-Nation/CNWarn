@@ -1,6 +1,5 @@
 package de.cubenation.plugins.cnwarn.services;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -14,11 +13,15 @@ import java.util.logging.Logger;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 
+import org.apache.commons.lang.Validate;
+
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 
 import de.cubenation.plugins.cnwarn.model.Warn;
+import de.cubenation.plugins.cnwarn.model.exception.WarnNotFoundException;
+import de.cubenation.plugins.cnwarn.model.exception.WarnsNotFoundException;
 import de.cubenation.plugins.utils.ArrayConvert;
 import de.cubenation.plugins.utils.BukkitUtils;
 
@@ -134,16 +137,13 @@ public class WarnService {
      *            warn reason
      * @param rating
      *            the heaviness of the warn
-     * @return True, if warn was added. False, if warnedPlayerName or
-     *         staffMemberName was null or empty. Also false, if adding was not
-     *         successful.
+     * @return True, if warn was added.
      * 
      * @since 1.1
      */
     public final boolean addWarn(String warnedPlayerName, String staffMemberName, String message, Integer rating) {
-        if (warnedPlayerName == null || staffMemberName == null || warnedPlayerName.isEmpty() || staffMemberName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(warnedPlayerName, "warned player name cannot be null or empty");
+        Validate.notEmpty(staffMemberName, "staff member name cannot be null or empty");
 
         Warn newWarn = new Warn();
         newWarn.setPlayerName(warnedPlayerName);
@@ -171,14 +171,16 @@ public class WarnService {
      * @param id
      *            warn id
      * @return True, if the warn was deleted successful. False, if the warn
-     *         could not be found or deleted.
+     *         could not be deleted.
+     * @throws WarnNotFoundException
+     *             if warn could not found in database
      * 
      * @since 1.1
      */
-    public final boolean deleteWarn(int id) {
+    public final boolean deleteWarn(int id) throws WarnNotFoundException {
         Warn warn = conn.find(Warn.class, id);
         if (warn == null) {
-            return false;
+            throw new WarnNotFoundException(id);
         }
 
         try {
@@ -200,23 +202,22 @@ public class WarnService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return True, if warns was deleted successful. False, if the playerName
-     *         is null or empty. Also false, if no warn exists for deletion.
+     * @return True, if warns was deleted successful.
+     * @throws WarnsNotFoundException
+     *             if no warns found for player
      * 
      * @since 1.1
      */
-    public final boolean deleteWarns(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+    public final boolean deleteWarns(String playerName) throws WarnsNotFoundException {
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         Set<Warn> warns = conn.find(Warn.class).where().ieq("playername", playerName).findSet();
         if (warns.size() == 0) {
-            return false;
+            throw new WarnsNotFoundException(playerName);
         }
 
         try {
-            conn.delete(warns);
+            conn.delete(warns.iterator());
         } catch (OptimisticLockException e) {
             log.log(Level.SEVERE, "error on delete warns", e);
 
@@ -234,20 +235,19 @@ public class WarnService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return True, if the warns acceptance successful save. False, if the
-     *         playerName is null or empty. Also false, if no warn exists for
-     *         acceptance or saving is failed.
+     * @return True, if the warns acceptance successful save. False, if saving
+     *         is failed.
+     * @throws WarnsNotFoundException
+     *             if no warn exists for acceptance
      * 
      * @since 1.1
      */
-    public final boolean acceptWarns(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+    public final boolean acceptWarns(String playerName) throws WarnsNotFoundException {
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         Set<Warn> unAccWarns = conn.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findSet();
         if (unAccWarns.size() == 0) {
-            return false;
+            throw new WarnsNotFoundException(playerName);
         }
 
         for (Warn warn : unAccWarns) {
@@ -273,15 +273,12 @@ public class WarnService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return True, if not accepted warns exists in database. Otherwise false.
-     *         Also false, if the playerName is null or empty.
+     * @return True, if not accepted warns exists in database, otherwise false.
      * 
      * @since 1.1
      */
     public final boolean hasPlayerNotAcceptedWarns(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         return conn.find(Warn.class).where().ieq("playername", playerName).isNull("accepted").findRowCount() > 0;
     }
@@ -292,15 +289,12 @@ public class WarnService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return True, if not accepted warns exists in database. Otherwise false.
-     *         Also false, if the playerName is null or empty.
+     * @return True, if not accepted warns exists in database, otherwise false.
      * 
      * @since 1.1
      */
     public final boolean isPlayersWarned(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         return conn.find(Warn.class).where().ieq("playername", playerName).findRowCount() > 0;
     }
@@ -311,15 +305,12 @@ public class WarnService {
      * @param searchPattern
      *            not case-sensitive player name, wildcards '%' can be used.
      * @return List of player names that was found for the searchPattern and has
-     *         warns. Return empty Collection, if the searchPattern is empty or
-     *         null.
+     *         warns.
      * 
      * @since 1.1
      */
     public final Collection<String> searchPlayerWithWarns(String searchPattern) {
-        if (searchPattern == null || searchPattern.isEmpty()) {
-            return new ArrayList<String>();
-        }
+        Validate.notEmpty(searchPattern, "search pattern cannot be null or empty");
 
         sqlSearchWarnedPlayer.setParameter("playerName", "%" + searchPattern + "%");
         List<SqlRow> found = sqlSearchWarnedPlayer.findList();
@@ -340,14 +331,12 @@ public class WarnService {
      * @param searchPattern
      *            not case-sensitive player name, wildcards '%' can be used.
      * @return List of player names that was found for the searchPattern and has
-     *         warns. Return empty List, if the searchPattern is empty or null.
+     *         warns.
      * 
      * @since 1.1
      */
     public final List<Warn> getWarnList(String searchPattern) {
-        if (searchPattern == null || searchPattern.isEmpty()) {
-            return new ArrayList<Warn>();
-        }
+        Validate.notEmpty(searchPattern, "search pattern cannot be null or empty");
 
         return conn.find(Warn.class).where().like("playername", "%" + searchPattern + "%").findList();
     }
@@ -357,15 +346,12 @@ public class WarnService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return True, if the player is online. Otherwise false. Also false, if
-     *         the playerName is null or empty.
+     * @return True, if the player is online, otherwise false.
      * 
      * @since 1.1
      */
     public final boolean cacheNotAcceptedWarns(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         if (BukkitUtils.isPlayerOnline(playerName)) {
             notAcceptedWarnedPlayerCache.add(playerName.toLowerCase());
@@ -381,15 +367,12 @@ public class WarnService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return True, if successful removed. False, if the playerName is null or
-     *         empty.
+     * @return True, if successful removed.
      * 
      * @since 1.1
      */
     public final boolean removeCachedNotAcceptedWarns(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         notAcceptedWarnedPlayerCache.remove(playerName.toLowerCase());
 
@@ -401,15 +384,12 @@ public class WarnService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return True, if the player has not accpeted warns. Otherwise false. Also
-     *         false, if the playerName is null or empty.
+     * @return True, if the player has not accpeted warns, otherwise false.
      * 
      * @since 1.1
      */
     public final boolean hasPlayerNotAcceptedWarnsCached(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         return notAcceptedWarnedPlayerCache.contains(playerName.toLowerCase());
     }
@@ -422,17 +402,14 @@ public class WarnService {
      * If LogBlock-table not exists, fallback looks to player online status.
      * 
      * @param playerName
-     * @return True, if the player had was online before, otherwise false. If
-     *         the playerName is null or empty false will be returned.
+     * @return True, if the player had was online before, otherwise false.
      * 
      * @since 1.1
      * @see <a
      *      href="http://dev.bukkit.org/bukkit-plugins/logblock/">LogBlock</a>
      */
     public final boolean hasPlayedBefore(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         sqlLogBlockPlayer.setParameter("playerName", playerName);
 
@@ -450,14 +427,12 @@ public class WarnService {
      * Calculate expiration date for warning against settings.
      * 
      * @param warn
-     * @return Return the date or null, if warn or accepted date is null
+     * @return Return the date or null, if accepted date is null.
      * 
      * @since 1.2
      */
     public final Date calculateExpirationDate(Warn warn) {
-        if (warn == null || warn.getAccepted() == null) {
-            return null;
-        }
+        Validate.notNull(warn, "warn cannot be null");
 
         GregorianCalendar acceptedDate = new GregorianCalendar();
         acceptedDate.setTime(warn.getAccepted());

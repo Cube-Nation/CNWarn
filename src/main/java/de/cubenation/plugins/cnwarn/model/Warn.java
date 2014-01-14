@@ -7,9 +7,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import com.avaje.ebean.validation.NotNull;
 
 @Entity
@@ -50,14 +47,6 @@ public class Warn {
 
     public void setPlayerName(String playerName) {
         this.playerName = playerName;
-    }
-
-    public Player getPlayer() {
-        return Bukkit.getServer().getPlayerExact(playerName);
-    }
-
-    public void setPlayer(Player player) {
-        this.playerName = player.getName();
     }
 
     public String getStaffName() {

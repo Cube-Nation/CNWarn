@@ -19,6 +19,8 @@ import org.junit.Test;
 
 import de.cubenation.plugins.cnwarn.CnWarn;
 import de.cubenation.plugins.cnwarn.model.Warn;
+import de.cubenation.plugins.cnwarn.model.exception.WarnNotFoundException;
+import de.cubenation.plugins.cnwarn.model.exception.WarnsNotFoundException;
 import de.cubenation.plugins.cnwarn.services.WarnService;
 import de.cubenation.plugins.utils.testapi.AbstractDatabaseTest;
 import de.cubenation.plugins.utils.testapi.TestPlayer;
@@ -214,12 +216,12 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void testDeleteWarnWrongId() {
+    public void testDeleteWarnWrongId() throws WarnNotFoundException {
         assertFalse(warnService.deleteWarn(5));
     }
 
     @Test
-    public void testDeleteWarnOnline() {
+    public void testDeleteWarnOnline() throws WarnNotFoundException {
         assertEquals(0, dbConnection.find(Warn.class).findList().size());
         assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
         assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
@@ -240,7 +242,7 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void testDeleteWarnOffline() {
+    public void testDeleteWarnOffline() throws WarnNotFoundException {
         assertEquals(0, dbConnection.find(Warn.class).findList().size());
         assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
         assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());
@@ -261,18 +263,18 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void testDeleteWarnsNull() {
+    public void testDeleteWarnsNull() throws WarnsNotFoundException {
         assertFalse(warnService.deleteWarns(null));
         assertFalse(warnService.deleteWarns(""));
     }
 
     @Test
-    public void testDeleteWarnsEmtpy() {
+    public void testDeleteWarnsEmtpy() throws WarnsNotFoundException {
         assertFalse(warnService.deleteWarns(testOnlinePlayer));
     }
 
     @Test
-    public void testDeleteWarnsOnline() {
+    public void testDeleteWarnsOnline() throws WarnsNotFoundException {
         assertEquals(0, dbConnection.find(Warn.class).findList().size());
         assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
         assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
@@ -291,7 +293,7 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void testDeleteWarnsOffline() {
+    public void testDeleteWarnsOffline() throws WarnsNotFoundException {
         assertEquals(0, dbConnection.find(Warn.class).findList().size());
         assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
         assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());
@@ -310,18 +312,18 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void testAcceptWarnsNull() {
+    public void testAcceptWarnsNull() throws WarnsNotFoundException {
         assertFalse(warnService.acceptWarns(null));
         assertFalse(warnService.acceptWarns(""));
     }
 
     @Test
-    public void testAcceptWarnsEmpty() {
+    public void testAcceptWarnsEmpty() throws WarnsNotFoundException {
         assertFalse(warnService.acceptWarns(testOnlinePlayer));
     }
 
     @Test
-    public void testAcceptWarnsOnline() {
+    public void testAcceptWarnsOnline() throws WarnsNotFoundException {
         assertEquals(0, dbConnection.find(Warn.class).findList().size());
         assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOnlinePlayer));
         assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOnlinePlayer).isNull("accepted").findRowCount());
@@ -340,7 +342,7 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void testAcceptWarnsOffline() {
+    public void testAcceptWarnsOffline() throws WarnsNotFoundException {
         assertEquals(0, dbConnection.find(Warn.class).findList().size());
         assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(testOfflinePlayer));
         assertEquals(0, dbConnection.find(Warn.class).where().eq("playername", testOfflinePlayer).isNull("accepted").findRowCount());

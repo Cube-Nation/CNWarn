@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 
+import org.apache.commons.lang.Validate;
+
 import com.avaje.ebean.EbeanServer;
 
 import de.cubenation.plugins.cnwarn.model.Watch;
@@ -42,15 +44,12 @@ public class WatchService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return True, if the player is under observation. Otherwise False. Also
-     *         false, if the playerName is null or empty.
+     * @return True, if the player is under observation, otherwise false.
      * 
      * @since 1.1
      */
     public final boolean isPlayerInWatchList(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
 
         Watch watchedPlayer = conn.find(Watch.class).setMaxRows(1).where().ieq("playerName", playerName).findUnique();
         return !(watchedPlayer == null);
@@ -65,15 +64,13 @@ public class WatchService {
      *            why is the player under observation
      * @param staffName
      *            player name that watched the player
-     * @return True, if saving the watch was successful. Otherwise false. Also
-     *         false, if the playerName or staffName is empty or null.
+     * @return True, if saving the watch was successful, otherwise false.
      * 
      * @since 1.1
      */
     public final boolean addWatch(String playerName, String description, String staffName) {
-        if (playerName == null || playerName.isEmpty() || staffName == null || staffName.isEmpty()) {
-            return false;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
+        Validate.notEmpty(staffName, "staff name cannot be null or empty");
 
         Watch watch = new Watch();
         watch.setPlayerName(playerName);
@@ -110,15 +107,12 @@ public class WatchService {
      * 
      * @param playerName
      *            not case-sensitive player name
-     * @return The found watch. If not found, null. Also null if playerName is
-     *         empty or null.
+     * @return The found watch. If not found, null.
      * 
      * @since 1.1
      */
     public final Watch getWatchedPlayerByName(String playerName) {
-        if (playerName == null || playerName.isEmpty()) {
-            return null;
-        }
+        Validate.notEmpty(playerName, "player name cannot be null or empty");
         return conn.find(Watch.class).setMaxRows(1).where().ieq("playerName", playerName).findUnique();
     }
 
@@ -127,15 +121,12 @@ public class WatchService {
      * 
      * @param watch
      *            the watch to delete.
-     * @return True, if the deletion was successful. Otherwise false. Also
-     *         false, if the watch is null.
+     * @return True, if the deletion was successful, otherwise false.
      * 
      * @since 1.1
      */
     public final boolean deletePlayerWatch(Watch watch) {
-        if (watch == null) {
-            return false;
-        }
+        Validate.notNull(watch, "watch cannot be null or empty");
 
         try {
             conn.delete(watch);
