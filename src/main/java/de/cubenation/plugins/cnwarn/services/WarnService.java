@@ -434,6 +434,10 @@ public class WarnService {
     public final Date calculateExpirationDate(Warn warn) {
         Validate.notNull(warn, "warn cannot be null");
 
+        if (warn.getAccepted() == null) {
+            return null;
+        }
+
         GregorianCalendar acceptedDate = new GregorianCalendar();
         acceptedDate.setTime(warn.getAccepted());
         acceptedDate.add(Calendar.DAY_OF_MONTH, expirationDays);

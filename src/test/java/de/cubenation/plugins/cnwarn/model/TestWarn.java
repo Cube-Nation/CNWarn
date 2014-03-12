@@ -3,21 +3,25 @@ package de.cubenation.plugins.cnwarn.model;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import de.cubenation.plugins.cnwarn.CnWarn;
-import de.cubenation.plugins.cnwarn.model.Warn;
 import de.cubenation.plugins.utils.testapi.AbstractDatabaseTest;
 
 public class TestWarn extends AbstractDatabaseTest {
     @Before
     public void setUp() {
-        super.setUp(new CnWarn());
+        List<Class<?>> list = new ArrayList<Class<?>>();
+        list.add(Warn.class);
+        list.add(Watch.class);
+
+        super.setUp(list);
     }
 
     @Test

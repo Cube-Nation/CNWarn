@@ -5,7 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -13,7 +15,7 @@ import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.cubenation.plugins.cnwarn.CnWarn;
+import de.cubenation.plugins.cnwarn.model.Warn;
 import de.cubenation.plugins.cnwarn.model.Watch;
 import de.cubenation.plugins.utils.testapi.AbstractDatabaseTest;
 
@@ -25,8 +27,11 @@ public class WatchServiceTest extends AbstractDatabaseTest {
     @Before
     @Override
     public void setUp() {
-        CnWarn plugin = new CnWarn();
-        super.setUp(plugin);
+        List<Class<?>> list = new ArrayList<Class<?>>();
+        list.add(Warn.class);
+        list.add(Watch.class);
+
+        super.setUp(list);
 
         watchService = new WatchService(dbConnection, Logger.getLogger("WatchServiceTest"));
         assertNotNull(watchService);
@@ -34,8 +39,19 @@ public class WatchServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testIsPlayerInWatchListNull() {
-        assertFalse(watchService.isPlayerInWatchList(""));
-        assertFalse(watchService.isPlayerInWatchList(null));
+        try {
+            watchService.isPlayerInWatchList("");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+
+        try {
+            watchService.isPlayerInWatchList(null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -53,10 +69,30 @@ public class WatchServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testAddWatchNull() {
-        assertFalse(watchService.addWatch("", "test", testStaff));
-        assertFalse(watchService.addWatch(null, "test", testStaff));
-        assertFalse(watchService.addWatch(testPlayer, "test", ""));
-        assertFalse(watchService.addWatch(testPlayer, "test", null));
+        try {
+            watchService.addWatch("", "test", testStaff);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            watchService.addWatch(null, "test", testStaff);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            watchService.addWatch(testPlayer, "test", "");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("staff name cannot be null or empty", e.getMessage());
+        }
+        try {
+            watchService.addWatch(testPlayer, "test", null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("staff name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -96,8 +132,18 @@ public class WatchServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testGetWatchedPlayerByNameNull() {
-        assertNull(watchService.getWatchedPlayerByName(""));
-        assertNull(watchService.getWatchedPlayerByName(null));
+        try {
+            watchService.getWatchedPlayerByName("");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            watchService.getWatchedPlayerByName(null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -117,7 +163,12 @@ public class WatchServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testDeletePlayerWatchNull() {
-        assertFalse(watchService.deletePlayerWatch(null));
+        try {
+            watchService.deletePlayerWatch(null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("watch cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test

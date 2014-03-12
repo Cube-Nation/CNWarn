@@ -5,7 +5,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -14,17 +20,17 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
-import de.cubenation.plugins.cnwarn.CnWarn;
 import de.cubenation.plugins.cnwarn.model.Warn;
+import de.cubenation.plugins.cnwarn.model.Watch;
 import de.cubenation.plugins.cnwarn.model.exception.WarnNotFoundException;
 import de.cubenation.plugins.cnwarn.model.exception.WarnsNotFoundException;
-import de.cubenation.plugins.cnwarn.services.WarnService;
 import de.cubenation.plugins.utils.testapi.AbstractDatabaseTest;
-import de.cubenation.plugins.utils.testapi.TestPlayer;
-import de.cubenation.plugins.utils.testapi.TestServer;
 
 public class WarnServiceTest extends AbstractDatabaseTest {
     private WarnService warnService;
@@ -35,10 +41,39 @@ public class WarnServiceTest extends AbstractDatabaseTest {
     @Before
     @Override
     public void setUp() {
-        CnWarn plugin = new CnWarn();
-        super.setUp(plugin);
+        List<Class<?>> list = new ArrayList<Class<?>>();
+        list.add(Warn.class);
+        list.add(Watch.class);
 
-        ((TestServer) Bukkit.getServer()).addOnlinePlayer(new TestPlayer(testOnlinePlayer));
+        super.setUp(list);
+
+        final Player player = mock(Player.class);
+        when(player.getName()).thenReturn(testOnlinePlayer);
+
+        doAnswer(new Answer<Player>() {
+            public Player answer(InvocationOnMock invocation) {
+                Object[] args = invocation.getArguments();
+                String name = (String) args[0];
+
+                if (name.equalsIgnoreCase(testOnlinePlayer)) {
+                    return player;
+                }
+
+                return null;
+            }
+        }).when(Bukkit.getServer()).getPlayer(anyString());
+        doAnswer(new Answer<Player>() {
+            public Player answer(InvocationOnMock invocation) {
+                Object[] args = invocation.getArguments();
+                String name = (String) args[0];
+
+                if (name.equalsIgnoreCase(testOnlinePlayer)) {
+                    return player;
+                }
+
+                return null;
+            }
+        }).when(Bukkit.getServer()).getPlayerExact(anyString());
 
         warnService = new WarnService(dbConnection, Logger.getLogger("WarnServiceTest"));
         assertNotNull(warnService);
@@ -155,10 +190,26 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testAddWarnNull() {
-        assertFalse(warnService.addWarn("", testStaff, "message", 1));
-        assertFalse(warnService.addWarn(testOnlinePlayer, "", "message", 1));
-        assertFalse(warnService.addWarn(null, testStaff, "message", 1));
-        assertFalse(warnService.addWarn(testOnlinePlayer, null, "message", 1));
+        try {
+            warnService.addWarn("", testStaff, "message", 1);
+        } catch (IllegalArgumentException e) {
+            assertEquals("warned player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.addWarn(testOnlinePlayer, "", "message", 1);
+        } catch (IllegalArgumentException e) {
+            assertEquals("staff member name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.addWarn(null, testStaff, "message", 1);
+        } catch (IllegalArgumentException e) {
+            assertEquals("warned player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.addWarn(testOnlinePlayer, null, "message", 1);
+        } catch (IllegalArgumentException e) {
+            assertEquals("staff member name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -217,7 +268,12 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testDeleteWarnWrongId() throws WarnNotFoundException {
-        assertFalse(warnService.deleteWarn(5));
+        try {
+            warnService.deleteWarn(5);
+        } catch (WarnNotFoundException e) {
+            assertEquals("warn not found for id 5", e.getMessage());
+            assertEquals(5, e.getWarnId());
+        }
     }
 
     @Test
@@ -264,13 +320,25 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testDeleteWarnsNull() throws WarnsNotFoundException {
-        assertFalse(warnService.deleteWarns(null));
-        assertFalse(warnService.deleteWarns(""));
+        try {
+            warnService.deleteWarns(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.deleteWarns("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
     public void testDeleteWarnsEmtpy() throws WarnsNotFoundException {
-        assertFalse(warnService.deleteWarns(testOnlinePlayer));
+        try {
+            warnService.deleteWarns(testOnlinePlayer);
+        } catch (WarnsNotFoundException e) {
+            assertEquals("warns not found for player testOnlinePlayer", e.getMessage());
+        }
     }
 
     @Test
@@ -313,13 +381,26 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testAcceptWarnsNull() throws WarnsNotFoundException {
-        assertFalse(warnService.acceptWarns(null));
-        assertFalse(warnService.acceptWarns(""));
+        try {
+            warnService.acceptWarns(null);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.acceptWarns("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
     public void testAcceptWarnsEmpty() throws WarnsNotFoundException {
-        assertFalse(warnService.acceptWarns(testOnlinePlayer));
+        try {
+            warnService.acceptWarns(testOnlinePlayer);
+        } catch (WarnsNotFoundException e) {
+            assertEquals("warns not found for player testOnlinePlayer", e.getMessage());
+        }
     }
 
     @Test
@@ -362,8 +443,16 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testHasPlayerNotAcceptedWarnsNull() {
-        assertFalse(warnService.hasPlayerNotAcceptedWarns(null));
-        assertFalse(warnService.hasPlayerNotAcceptedWarns(""));
+        try {
+            warnService.hasPlayerNotAcceptedWarns(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.hasPlayerNotAcceptedWarns("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -377,8 +466,16 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testIsPlayersWarnedNull() {
-        assertFalse(warnService.isPlayersWarned(null));
-        assertFalse(warnService.isPlayersWarned(""));
+        try {
+            warnService.isPlayersWarned(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.isPlayersWarned("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -392,12 +489,16 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testSearchPlayerWithWarnsNull() {
-        Collection<String> searchWarnsNull = warnService.searchPlayerWithWarns(null);
-        assertNotNull(searchWarnsNull);
-        assertEquals(0, searchWarnsNull.size());
-        Collection<String> searchWarnsEmpty = warnService.searchPlayerWithWarns("");
-        assertNotNull(searchWarnsEmpty);
-        assertEquals(0, searchWarnsEmpty.size());
+        try {
+            warnService.searchPlayerWithWarns(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("search pattern cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.searchPlayerWithWarns("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("search pattern cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -423,12 +524,17 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testGetWarnListNull() {
-        List<Warn> listWarnsNull = warnService.getWarnList(null);
-        assertNotNull(listWarnsNull);
-        assertEquals(0, listWarnsNull.size());
-        List<Warn> listWarnsEmpty = warnService.getWarnList("");
-        assertNotNull(listWarnsEmpty);
-        assertEquals(0, listWarnsEmpty.size());
+        try {
+            warnService.getWarnList(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("search pattern cannot be null or empty", e.getMessage());
+        }
+
+        try {
+            warnService.getWarnList("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("search pattern cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -477,8 +583,16 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testCacheNotAcceptedWarnsNull() {
-        assertFalse(warnService.cacheNotAcceptedWarns(null));
-        assertFalse(warnService.cacheNotAcceptedWarns(""));
+        try {
+            warnService.cacheNotAcceptedWarns(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.cacheNotAcceptedWarns("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -501,8 +615,16 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testRemoveCachedNotAcceptedWarnsNull() {
-        assertFalse(warnService.removeCachedNotAcceptedWarns(null));
-        assertFalse(warnService.removeCachedNotAcceptedWarns(""));
+        try {
+            warnService.removeCachedNotAcceptedWarns(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.removeCachedNotAcceptedWarns("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -517,8 +639,16 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testHasPlayerNotAcceptedWarnsCachedNull() {
-        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(""));
-        assertFalse(warnService.hasPlayerNotAcceptedWarnsCached(null));
+        try {
+            warnService.hasPlayerNotAcceptedWarnsCached("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.hasPlayerNotAcceptedWarnsCached(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -536,8 +666,16 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testHasPlayedBeforeNull() {
-        assertFalse(warnService.hasPlayedBefore(""));
-        assertFalse(warnService.hasPlayedBefore(null));
+        try {
+            warnService.hasPlayedBefore("");
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
+        try {
+            warnService.hasPlayedBefore(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("player name cannot be null or empty", e.getMessage());
+        }
     }
 
     @Test
@@ -548,7 +686,11 @@ public class WarnServiceTest extends AbstractDatabaseTest {
 
     @Test
     public void testCalculateExpirationDateNull() {
-        assertNull(warnService.calculateExpirationDate(null));
+        try {
+            warnService.calculateExpirationDate(null);
+        } catch (IllegalArgumentException e) {
+            assertEquals("warn cannot be null", e.getMessage());
+        }
 
         Warn warn = new Warn();
         assertNull(warnService.calculateExpirationDate(warn));
