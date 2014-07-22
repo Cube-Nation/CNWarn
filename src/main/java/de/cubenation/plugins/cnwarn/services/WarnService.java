@@ -14,12 +14,15 @@ import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 
 import org.apache.commons.lang.Validate;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.SqlQuery;
 import com.avaje.ebean.SqlRow;
 
 import de.cubenation.plugins.cnwarn.model.Warn;
+import de.cubenation.plugins.cnwarn.model.exception.WarnNoLocationException;
 import de.cubenation.plugins.cnwarn.model.exception.WarnNotFoundException;
 import de.cubenation.plugins.cnwarn.model.exception.WarnsNotFoundException;
 import de.cubenation.plugins.utils.ArrayConvert;
@@ -141,7 +144,7 @@ public class WarnService {
      * 
      * @since 1.1
      */
-    public final boolean addWarn(String warnedPlayerName, String staffMemberName, String message, Integer rating) {
+    public final boolean addWarn(String warnedPlayerName, String staffMemberName, String message, Integer rating, Location loc) {
         Validate.notEmpty(warnedPlayerName, "warned player name cannot be null or empty");
         Validate.notEmpty(staffMemberName, "staff member name cannot be null or empty");
 
@@ -151,6 +154,7 @@ public class WarnService {
         newWarn.setMessage(message);
         newWarn.setRating(rating);
         newWarn.setCreated(new Date());
+        newWarn.setLocation(loc);
 
         try {
             conn.save(newWarn);
@@ -475,4 +479,19 @@ public class WarnService {
 
         return true;
     }
+
+	public boolean tpToWarn(Player player, int id) throws WarnNotFoundException, WarnNoLocationException {
+        Warn warn = conn.find(Warn.class, id);
+        if (warn == null) {
+            throw new WarnNotFoundException(id);
+        }
+        
+        if (warn.getLocation() == null) {
+        	throw new WarnNoLocationException(id);
+        }
+
+        player.teleport(warn.getLocation());
+
+        return true;
+	}
 }

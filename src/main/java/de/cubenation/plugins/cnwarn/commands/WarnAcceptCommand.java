@@ -36,8 +36,18 @@ public class WarnAcceptCommand {
                     String created = formatter.format(createDate);
                     ratingSum += warn.getRating();
 
-                    chatService.one(player, "player.warnEntry", warn.getId(), warn.getMessage(), warn.getRating(), created, warn.getStaffName(),
-                            (warn.getAccepted() == null ? "Nein" : "Ja"));
+                    chatService.one(
+                    		player,
+                    		"player.warnEntry",
+                    		warn.getId(),
+                    		warn.getMessage(),
+                    		warn.getRating(),
+                    		created,
+                    		warn.getStaffName(),
+                            (warn.getAccepted() == null ? "Nein" : "Ja"),
+                            warn.getWorld(),
+                            warn.getLocation().toVector().toString()
+                            );
 
                     if (warn.getAccepted() != null) {
                         String accepted = formatter.format(warnService.calculateExpirationDate(warn));

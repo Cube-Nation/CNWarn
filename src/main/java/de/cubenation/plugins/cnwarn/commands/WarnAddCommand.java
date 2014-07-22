@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import de.cubenation.plugins.cnwarn.services.WarnService;
@@ -32,6 +33,7 @@ public class WarnAddCommand {
         String rate = argList.pollLast();
 
         String message = StringUtils.join(argList, " ");
+        Location location = player.getLocation();
         Integer rating;
 
         // check if the message is at least 5 chars long
@@ -65,7 +67,7 @@ public class WarnAddCommand {
             existsWarnRatingSum = Integer.toString(warnService.getRatingSum(playerName));
         }
 
-        if (!warnService.addWarn(playerName, player.getName(), message, rating)) {
+        if (!warnService.addWarn(playerName, player.getName(), message, rating, location)) {
             chatService.one(player, "staff.newWarnFailed");
             return;
         }

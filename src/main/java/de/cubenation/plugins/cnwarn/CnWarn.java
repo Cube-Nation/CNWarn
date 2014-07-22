@@ -7,6 +7,7 @@ import org.bukkit.event.Listener;
 import de.cubenation.plugins.cnwarn.commands.WarnAcceptCommand;
 import de.cubenation.plugins.cnwarn.commands.WarnAddCommand;
 import de.cubenation.plugins.cnwarn.commands.WarnDeleteCommand;
+import de.cubenation.plugins.cnwarn.commands.WarnTPCommand;
 import de.cubenation.plugins.cnwarn.commands.WarnListCommand;
 import de.cubenation.plugins.cnwarn.commands.WarnSearchCommand;
 import de.cubenation.plugins.cnwarn.commands.WatchAddCommand;
@@ -47,6 +48,7 @@ public class CnWarn extends BasePlugin {
         list.add(new CommandSet(WarnAcceptCommand.class, warnService, chatService));
         list.add(new CommandSet(WarnAddCommand.class, warnService, chatService));
         list.add(new CommandSet(WarnDeleteCommand.class, warnService, chatService));
+        list.add(new CommandSet(WarnTPCommand.class, warnService, chatService));
         list.add(new CommandSet(WarnListCommand.class, warnService, chatService));
         list.add(new CommandSet(WarnSearchCommand.class, warnService, chatService));
         list.add(new CommandSet(WatchAddCommand.class, watchService, chatService));
